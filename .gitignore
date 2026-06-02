@@ -39,3 +39,22 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local database (SQLite)
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+
+# Local environment & secrets
+.env
+.env.local
+.env.*.local
+
+# Backup files
+*.bak
+*.backup
+
+# OS
+.DS_Store
+Thumbs.db
