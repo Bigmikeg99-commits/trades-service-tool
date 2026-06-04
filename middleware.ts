@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Hardcoded to avoid importing Lucia (which pulls in DB/sqlite) into Edge middleware.
-// Middleware always runs in the Edge runtime; Node-only modules like better-sqlite3/fs are not supported.
+// Hardcoded to avoid importing Lucia (which pulls in DB) into Edge middleware.
+// Middleware always runs in the Edge runtime; Node-only modules like pg are not supported in edge.
 // Actual session validation happens in the protected layout (which forces nodejs runtime).
 const SESSION_COOKIE_NAME = "auth_session";
 

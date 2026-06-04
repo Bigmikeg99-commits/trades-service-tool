@@ -102,7 +102,7 @@ export default function LandingPage() {
 
       {/* Bottom bar */}
       <div className="border-t border-zinc-200 py-8 text-center text-xs text-zinc-500 dark:border-zinc-800">
-        Runs locally with SQLite • No data leaves your machine • Built to be extended
+        Uses Postgres (Neon or local) • Your data in your database • Built to be extended
       </div>
     </div>
   );

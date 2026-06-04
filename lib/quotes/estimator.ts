@@ -1,3 +1,5 @@
+import "server-only";
+
 import { db } from "@/lib/db";
 import { priceBookItems, jobTemplates } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -31,15 +33,18 @@ export async function generateQuoteDraft(input: EstimatorInput): Promise<QuoteDr
 
   if (bestTemplate?.defaultLineItems) {
     try {
-      const templateItems = JSON.parse(bestTemplate.defaultLineItems as string);
-      lineItems = templateItems.map((item: any) => ({
-        description: item.description,
-        category: serviceType,
-        quantity: item.quantity || 1,
-        unitPrice: item.unitPrice,
-        lineTotal: (item.quantity || 1) * item.unitPrice,
-        source: "template" as const,
-      }));
+      const templateItems = (bestTemplate.defaultLineItems as unknown[]) ?? [];
+      lineItems = templateItems.map((item: unknown) => {
+        const it = item as { description?: string; quantity?: number; unitPrice?: number };
+        return {
+          description: it.description ?? "",
+          category: serviceType,
+          quantity: it.quantity || 1,
+          unitPrice: it.unitPrice ?? 0,
+          lineTotal: (it.quantity || 1) * (it.unitPrice ?? 0),
+          source: "template" as const,
+        };
+      });
     } catch (e) {
       // fall through to price book matching
     }
@@ -73,7 +78,9 @@ function normalizeServiceType(
   explicit: string | undefined,
   text: string
 ): "hvac" | "plumbing" | "electrical" | "general" {
-  if (explicit) return explicit as any;
+  if (explicit && ["hvac", "plumbing", "electrical", "general"].includes(explicit)) {
+    return explicit as "hvac" | "plumbing" | "electrical" | "general";
+  }
 
   if (text.includes("heat") || text.includes("furnace") || text.includes("ac") || text.includes("cooling")) {
     return "hvac";

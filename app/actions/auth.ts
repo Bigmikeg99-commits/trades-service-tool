@@ -1,5 +1,7 @@
 "use server";
 
+import "server-only";
+
 import { lucia } from "@/lib/auth/lucia";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
@@ -66,11 +68,11 @@ export async function signup(prevState: any, formData: FormData) {
   const { name, email, password } = parsed.data;
 
   // Check if user already exists
-  const existingUser = await db
+  const existingUser = (await db
     .select()
     .from(users)
     .where(eq(users.email, email))
-    .get();
+    .limit(1))[0];
 
   if (existingUser) {
     return { error: "An account with this email already exists" };
@@ -137,11 +139,11 @@ export async function login(prevState: any, formData: FormData) {
 
   const { email, password } = parsed.data;
 
-  const user = await db
+  const user = (await db
     .select()
     .from(users)
     .where(eq(users.email, email))
-    .get();
+    .limit(1))[0];
 
   if (!user) {
     // Use generic message to avoid user enumeration

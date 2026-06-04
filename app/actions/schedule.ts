@@ -1,5 +1,7 @@
 "use server";
 
+import "server-only";
+
 import { db } from "@/lib/db";
 import { jobs } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -14,7 +16,7 @@ export async function assignJobToSlot(formData: FormData) {
     return { error: "Missing required fields" };
   }
 
-  const job = await db.select().from(jobs).where(eq(jobs.id, jobId)).get();
+  const job = (await db.select().from(jobs).where(eq(jobs.id, jobId)).limit(1))[0];
   if (!job) return { error: "Job not found" };
 
   const durationHours = job.estimatedLaborHours || 2;

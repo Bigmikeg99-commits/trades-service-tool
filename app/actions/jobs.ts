@@ -1,5 +1,7 @@
 "use server";
 
+import "server-only";
+
 import { db } from "@/lib/db";
 import { jobs, customers, jobLineItems } from "@/lib/db/schema";
 import { eq, like, desc, and, gte, lte, count } from "drizzle-orm";
@@ -172,19 +174,19 @@ export async function getJobs(filters?: {
 }
 
 export async function getJob(id: string) {
-  const job = await db
+  const job = (await db
     .select()
     .from(jobs)
     .where(eq(jobs.id, id))
-    .get();
+    .limit(1))[0];
 
   if (!job) return null;
 
-  const customer = await db
+  const customer = (await db
     .select()
     .from(customers)
     .where(eq(customers.id, job.customerId))
-    .get();
+    .limit(1))[0];
 
   const lineItems = await db
     .select()

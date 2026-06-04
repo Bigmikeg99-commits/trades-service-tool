@@ -2,6 +2,8 @@ export const runtime = "nodejs";
 
 import { lucia } from "@/lib/auth/lucia";
 import { cookies } from "next/headers";
+import "server-only";
+
 import { db } from "@/lib/db";
 import { jobs, customers } from "@/lib/db/schema";
 import { eq, count, and, gte, lte, isNotNull } from "drizzle-orm";

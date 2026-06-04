@@ -1,3 +1,5 @@
+import "server-only";
+
 import { db } from "@/lib/db";
 import { crewMembers, jobs } from "@/lib/db/schema";
 import { eq, and, gte, lte, isNotNull } from "drizzle-orm";
@@ -129,11 +131,11 @@ export async function findAvailableSlots(
   preferredDate: Date,
   travelMin: number = 30
 ): Promise<AvailableSlot[]> {
-  const crew = await db
+  const crew = (await db
     .select()
     .from(crewMembers)
     .where(eq(crewMembers.id, crewId))
-    .get();
+    .limit(1))[0];
 
   if (!crew) return [];
 
@@ -186,11 +188,11 @@ export async function wouldCauseConflict(
   proposedEnd: Date,
   excludeJobId?: string
 ): Promise<boolean> {
-  const crew = await db
+  const crew = (await db
     .select()
     .from(crewMembers)
     .where(eq(crewMembers.id, crewId))
-    .get();
+    .limit(1))[0];
 
   if (!crew) return true;
 

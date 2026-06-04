@@ -1,5 +1,7 @@
 export const runtime = "nodejs";
 
+import "server-only";
+
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import {
@@ -74,7 +76,7 @@ export async function POST(request: Request) {
     if (data.companySettings && typeof data.companySettings === "object") {
       try {
         const cs = normalizeDates(data.companySettings);
-        const existing = await db.select({ id: companySettings.id }).from(companySettings).get();
+        const existing = (await db.select({ id: companySettings.id }).from(companySettings).limit(1))[0];
         if (existing) {
           // Remove id from set to avoid PK issues; use imported fields
           const { id: _ignoredId, ...setData } = cs;
@@ -105,11 +107,11 @@ export async function POST(request: Request) {
         }
         const norm = normalizeDates(c);
         try {
-          const exists = await db
+          const exists = (await db
             .select({ id: customers.id })
             .from(customers)
             .where(eq(customers.id, c.id))
-            .get();
+            .limit(1))[0];
           if (exists) {
             // duplicate skipped
             continue;
@@ -131,11 +133,11 @@ export async function POST(request: Request) {
         }
         const norm = normalizeDates(p);
         try {
-          const exists = await db
+          const exists = (await db
             .select({ id: priceBookItems.id })
             .from(priceBookItems)
             .where(eq(priceBookItems.id, p.id))
-            .get();
+            .limit(1))[0];
           if (exists) continue;
           await db.insert(priceBookItems).values(norm);
           imported.priceBookItems++;
@@ -154,11 +156,11 @@ export async function POST(request: Request) {
         }
         const norm = normalizeDates(j);
         try {
-          const exists = await db
+          const exists = (await db
             .select({ id: jobs.id })
             .from(jobs)
             .where(eq(jobs.id, j.id))
-            .get();
+            .limit(1))[0];
           if (exists) continue;
           await db.insert(jobs).values(norm);
           imported.jobs++;
@@ -177,11 +179,11 @@ export async function POST(request: Request) {
         }
         const norm = normalizeDates(l);
         try {
-          const exists = await db
+          const exists = (await db
             .select({ id: jobLineItems.id })
             .from(jobLineItems)
             .where(eq(jobLineItems.id, l.id))
-            .get();
+            .limit(1))[0];
           if (exists) continue;
           await db.insert(jobLineItems).values(norm);
           imported.jobLineItems++;

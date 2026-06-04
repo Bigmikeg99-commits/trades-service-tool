@@ -1,5 +1,7 @@
 "use server";
 
+import "server-only";
+
 import { generateQuoteDraft } from "@/lib/quotes/estimator";
 import { db } from "@/lib/db";
 import { jobs, jobLineItems } from "@/lib/db/schema";
@@ -8,7 +10,7 @@ import { revalidatePath } from "next/cache";
 import { QuoteDraft } from "@/lib/quotes/types";
 
 export async function generateAndSaveQuote(jobId: string, rawDescription: string) {
-  const job = await db.select().from(jobs).where(eq(jobs.id, jobId)).get();
+  const job = (await db.select().from(jobs).where(eq(jobs.id, jobId)).limit(1))[0];
   if (!job) throw new Error("Job not found");
 
   const draft = await generateQuoteDraft({

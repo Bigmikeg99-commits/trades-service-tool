@@ -1,5 +1,7 @@
 "use server";
 
+import "server-only";
+
 import { db } from "@/lib/db";
 import { customers } from "@/lib/db/schema";
 import { eq, like, desc } from "drizzle-orm";
@@ -142,9 +144,9 @@ export async function getCustomers(search?: string) {
 }
 
 export async function getCustomer(id: string) {
-  return await db
+  return (await db
     .select()
     .from(customers)
     .where(eq(customers.id, id))
-    .get();
+    .limit(1))[0] ?? null;
 }

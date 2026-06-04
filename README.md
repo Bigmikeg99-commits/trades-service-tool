@@ -2,7 +2,7 @@
 
 **A practical, fast, and reliable field service management tool for HVAC, plumbing, electrical, and general contractors.**
 
-Runs completely locally with a single command. No cloud required. Your data stays on your machine.
+Runs with a single command (`npm run dev`). Uses Postgres (local Postgres or hosted like Neon via DATABASE_URL). Your data stays under your control.
 
 ---
 
@@ -27,7 +27,7 @@ You're ready to use it.
 cp .env.example .env.local
 ```
 
-The SQLite database (`data/trades.db`) is created automatically on first use with realistic demo data.
+The Postgres database (Neon via DATABASE_URL) is used; run `npm run db:seed` after `db:push` for demo data. See .env.example.
 
 ---
 
@@ -49,13 +49,13 @@ Everything is designed to work great on a phone in a truck.
 ## Architecture Overview
 
 - **Next.js 16** (App Router) + TypeScript + Tailwind
-- **SQLite + Drizzle ORM** — Single file database at `data/trades.db`
+- **Postgres + Drizzle ORM** — Neon (or any Postgres) via DATABASE_URL env (see .env.example)
 - **Lucia** — Lightweight authentication
 - **Pure local intelligence** — `lib/quotes/estimator.ts` and `lib/scheduling/availability.ts` (no external APIs needed)
 - **Professional PDFs** — Ready-to-use `@react-pdf/renderer` components + excellent printable HTML fallback
 - **Strong extensibility** — `AGENTS.md` + `.grok/skills/` for future AI assistance or custom logic
 
-The app is deliberately **local-first**. Future features (Stripe, optional AI, etc.) are designed to never break the zero-config experience.
+The app is deliberately simple and self-contained. It works fully with a local Postgres or hosted (Neon) via a single env var. Future features (Stripe, optional AI, etc.) are designed to never break the core experience.
 
 ---
 
@@ -140,9 +140,9 @@ AGENTS.md                # Strict rules for future agents/humans
 ## Troubleshooting
 
 **Database issues**
-- The database lives at `data/trades.db`
-- Delete the file + run `npm run db:seed` to reset everything
-- Always back up `data/` before experimenting
+- The database is Postgres (Neon recommended); use `npm run db:push` then `npm run db:seed` to (re)initialize schema + demo data.
+- To reset: use Neon dashboard or `db:push` again (destructive).
+- Backup/restore via your Postgres provider (e.g. Neon branches or pg_dump). The legacy `data/trades.db` is no longer used.
 
 **"Cannot find module 'server-only'" when running seeds**
 - This is expected. The seed script (`lib/db/seed.ts`) has the import stripped for CLI use.

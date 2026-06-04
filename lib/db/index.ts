@@ -1,35 +1,38 @@
 // Note: "server-only" import removed for CLI script compatibility (seed, etc.)
 // Inside Next.js server components/actions, importing this file will still be protected
 // by the bundler if you add the import where needed.
+// Per AGENTS.md: add `import "server-only";` at top of files that use db (except this index and pure CLI scripts).
 
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
+import { config } from "dotenv";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import * as schema from "./schema";
 
-// Ensure the data directory exists (creates it if missing on first run)
-import { mkdirSync } from "fs";
-import { dirname } from "path";
-
-const dbPath = "./data/trades.db";
-const dbDir = dirname(dbPath);
-
-try {
-  mkdirSync(dbDir, { recursive: true });
-} catch (e) {
-  // Directory may already exist
+// Load .env.local when running scripts directly (e.g. tsx seed.ts, or drizzle).
+// Next.js dev/build already injects .env.local before code runs.
+if (!process.env.DATABASE_URL) {
+  config({ path: ".env.local" });
 }
 
-const sqlite = new Database(dbPath, {
-  // Good defaults for local single-process use
-  verbose: process.env.NODE_ENV === "development" ? console.log : undefined,
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL is not set. Set it to your Neon Postgres connection string (e.g. postgresql://...)"
+  );
+}
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  // For Neon: use ssl reject to avoid some warnings; pooler URL handles certs
+  ssl: { rejectUnauthorized: false },
+  max: 10,
 });
 
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(pool, { schema });
 
 // Export schema for convenience
 export * from "./schema";
 
-// Helper to close DB connection (useful in scripts)
-export function closeDb() {
-  sqlite.close();
+// Helper to close pool (useful in scripts / shutdown)
+export async function closeDb() {
+  await pool.end();
 }

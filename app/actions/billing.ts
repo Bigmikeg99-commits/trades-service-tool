@@ -1,5 +1,7 @@
 "use server";
 
+import "server-only";
+
 import { db } from "@/lib/db";
 import { companySettings } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -18,13 +20,13 @@ function getStripe() {
 
 // Get or create company settings row
 async function getOrCreateSettings() {
-  let settings = await db.select().from(companySettings).get();
+  let settings = (await db.select().from(companySettings).limit(1))[0];
 
   if (!settings) {
     await db.insert(companySettings).values({
       name: "Your Company Name",
     });
-    settings = await db.select().from(companySettings).get();
+    settings = (await db.select().from(companySettings).limit(1))[0];
   }
 
   return settings!;
@@ -74,7 +76,7 @@ export async function createCustomerPortalSession() {
 }
 
 export async function getSubscriptionStatus() {
-  const settings = await db.select().from(companySettings).get();
+  const settings = (await db.select().from(companySettings).limit(1))[0];
 
   if (!settings) {
     return { status: "inactive" as const, plan: "free" as const };

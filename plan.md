@@ -8,7 +8,7 @@
 
 ## Summary of Approved Plan
 
-**Core Promise:** One command (`npm run dev`) → fully working professional tool for contractors. Clean, fast, mobile-friendly, local-first with SQLite.
+**Core Promise:** One command (`npm run dev`) → fully working professional tool for contractors. Clean, fast, mobile-friendly, local-first with Postgres (Neon via DATABASE_URL or local Postgres).
 
 **Key Decisions (Approved):**
 - No LLM required for MVP (air-gapped simplicity)

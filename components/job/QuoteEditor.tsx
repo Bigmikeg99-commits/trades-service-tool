@@ -3,7 +3,18 @@
 import { useState } from "react";
 import { LineItemDraft, QuoteDraft } from "@/lib/quotes/types";
 import { saveQuoteDraft } from "@/app/actions/quotes";
-import type { PriceBookItem } from "@/lib/db/schema";
+
+// Local type (avoid importing Drizzle schema into client component per AGENTS.md)
+interface PriceBookItem {
+  id: string;
+  name: string;
+  sku: string | null;
+  category: string;
+  unitPrice: number;
+  unit: string;
+  typicalLaborMin: number | null;
+  notes: string | null;
+}
 
 interface QuoteEditorProps {
   initialDraft: QuoteDraft;

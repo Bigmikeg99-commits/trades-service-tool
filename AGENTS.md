@@ -10,8 +10,8 @@ This file provides strict guidance for any AI coding assistant (Grok, Claude, Cu
 
 1. **Local-first & Simple**  
    - The app must continue to run with `npm run dev` after any change.  
-   - No external services required for core functionality.  
-   - SQLite (`data/trades.db`) is the single source of truth.
+   - No external services required for core functionality (Neon Postgres via DATABASE_URL; can use local Postgres).  
+   - Postgres (Neon) is the single source of truth.
 
 2. **Server-Only Data Access**  
    - **Never** import `lib/db` or Drizzle schema into Client Components (`"use client"`).  
@@ -37,7 +37,7 @@ This file provides strict guidance for any AI coding assistant (Grok, Claude, Cu
 ## Tech Stack Rules
 
 - **Next.js 16+** (App Router) + TypeScript (strict) + Tailwind + shadcn/ui
-- **Drizzle ORM + better-sqlite3** for the database
+- **Drizzle ORM + node-postgres (pg)** for the database (Neon Postgres in production; local Postgres supported)
 - **Lucia** for authentication (email + password only in MVP)
 - **@react-pdf/renderer** for all proposal PDFs
 - `date-fns`, `zod`, `lucide-react`, `sonner`
@@ -79,7 +79,7 @@ Never use `html2canvas` + jsPDF for official proposals.
 
 - Do not add magic links, email sending, or external auth providers without explicit approval.
 - Do not introduce LLM calls into the critical path without a clear offline fallback (the local estimator must remain the default).
-- Do not change the SQLite file location (`data/trades.db`) or break the single-command run experience.
+- Do not change the database connection string logic or break the single-command run experience (DATABASE_URL now required for Postgres/Neon). Local .env.local with Neon string works.
 - Do not use `any` in TypeScript except in the rarest of cases (and comment why).
 - Do not put business logic in Client Components.
 

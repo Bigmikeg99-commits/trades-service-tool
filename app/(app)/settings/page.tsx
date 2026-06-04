@@ -8,6 +8,8 @@ import {
   toggleCrewActive,
   getActiveCrew 
 } from "@/app/actions/settings";
+import "server-only";
+
 import { db } from "@/lib/db";
 import { crewMembers } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";

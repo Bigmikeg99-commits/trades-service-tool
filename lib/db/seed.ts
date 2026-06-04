@@ -174,11 +174,11 @@ async function seed() {
       descriptionPattern: "frozen pipe",
       serviceType: "plumbing",
       estimatedLaborHours: 3.5,
-      defaultLineItems: JSON.stringify([
+      defaultLineItems: [
         { description: "Frozen pipe diagnostic & thaw", quantity: 1, unitPrice: 425, source: "template" },
         { description: "Pipe insulation (10 ft)", quantity: 2, unitPrice: 28, source: "template" },
         { description: "Heat tape installation", quantity: 1, unitPrice: 95, source: "template" },
-      ]),
+      ],
       notes: "Most common in Jan-Feb. Recommend annual inspection.",
     },
     {
@@ -186,22 +186,22 @@ async function seed() {
       descriptionPattern: "no heat furnace",
       serviceType: "hvac",
       estimatedLaborHours: 2.25,
-      defaultLineItems: JSON.stringify([
+      defaultLineItems: [
         { description: "Furnace diagnostic", quantity: 1, unitPrice: 95, source: "template" },
         { description: "Furnace igniter", quantity: 1, unitPrice: 89, source: "template" },
         { description: "Flame sensor cleaning/replacement", quantity: 1, unitPrice: 42, source: "template" },
-      ]),
+      ],
     },
     {
       name: "AC Not Cooling",
       descriptionPattern: "ac not cooling",
       serviceType: "hvac",
       estimatedLaborHours: 2.0,
-      defaultLineItems: JSON.stringify([
+      defaultLineItems: [
         { description: "AC diagnostic", quantity: 1, unitPrice: 95, source: "template" },
         { description: "Start/run capacitor", quantity: 1, unitPrice: 68, source: "template" },
         { description: "Contactor replacement", quantity: 1, unitPrice: 52, source: "template" },
-      ]),
+      ],
     },
   ]);
   console.log("✓ Job templates created");

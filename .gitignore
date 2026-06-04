@@ -40,7 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Local database (SQLite)
+# Local database (legacy SQLite - now using Postgres via DATABASE_URL)
+# data/ no longer used; ignore any accidental local db files
 data/*.db
 data/*.db-journal
 data/*.db-wal

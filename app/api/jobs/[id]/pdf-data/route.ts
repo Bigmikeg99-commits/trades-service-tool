@@ -1,6 +1,8 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
+import "server-only";
+
 import { db } from "@/lib/db";
 import { jobs, customers, companySettings, jobLineItems } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -12,18 +14,18 @@ export async function GET(
   const { id } = await params;
 
   try {
-    const job = await db.select().from(jobs).where(eq(jobs.id, id)).get();
+    const job = (await db.select().from(jobs).where(eq(jobs.id, id)).limit(1))[0];
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    const customer = await db
+    const customer = (await db
       .select()
       .from(customers)
       .where(eq(customers.id, job.customerId))
-      .get();
+      .limit(1))[0];
 
-    const settings = await db.select().from(companySettings).get();
+    const settings = (await db.select().from(companySettings).limit(1))[0];
 
     const lineItems = await db
       .select()

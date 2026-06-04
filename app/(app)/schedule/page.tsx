@@ -2,6 +2,8 @@ export const runtime = "nodejs";
 
 import { getCrewAvailabilityForWeek, findAvailableSlots } from "@/lib/scheduling/availability";
 import { EmptyState } from "@/components/EmptyState";
+import "server-only";
+
 import { db } from "@/lib/db";
 import { crewMembers, jobs } from "@/lib/db/schema";
 import { eq, and, isNotNull, isNull, or } from "drizzle-orm";

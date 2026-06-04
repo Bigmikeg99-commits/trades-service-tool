@@ -1,5 +1,7 @@
 "use server";
 
+import "server-only";
+
 import { db } from "@/lib/db";
 import { priceBookItems, jobLineItems } from "@/lib/db/schema";
 import { eq, like, and, desc, count } from "drizzle-orm";
@@ -145,11 +147,11 @@ export async function updatePriceBookItem(id: string, formData: FormData) {
 export async function getPriceBookItemUsageCount(itemId: string) {
   // Simple approximation: count job line items whose description contains the item name
   // In a future version we can add a proper price_book_item_id FK
-  const item = await db
+  const item = (await db
     .select()
     .from(priceBookItems)
     .where(eq(priceBookItems.id, itemId))
-    .get();
+    .limit(1))[0];
 
   if (!item) return 0;
 

@@ -1,5 +1,7 @@
 "use server";
 
+import "server-only";
+
 import { db } from "@/lib/db";
 import { companySettings, crewMembers } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -130,7 +132,7 @@ export async function updateCompanySettings(formData: FormData) {
   const data = parsed.data;
 
   // Get existing or create new
-  const existing = await db.select().from(companySettings).get();
+  const existing = (await db.select().from(companySettings).limit(1))[0];
 
   if (existing) {
     await db
@@ -149,7 +151,7 @@ export async function updateCompanySettings(formData: FormData) {
 }
 
 export async function getCompanySettings() {
-  return await db.select().from(companySettings).get();
+  return (await db.select().from(companySettings).limit(1))[0] ?? null;
 }
 
 // Crew Management

@@ -1,5 +1,7 @@
 export const runtime = "nodejs";
 
+import "server-only";
+
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import {
@@ -19,13 +21,14 @@ export async function GET() {
       return new NextResponse("Data export is a Pro/Team feature. Please upgrade your plan.", { status: 403 });
     }
 
-    const [settings, allCustomers, allJobs, allLineItems, allPriceBook] = await Promise.all([
-      db.select().from(companySettings).get(),
+    const [settingsArr, allCustomers, allJobs, allLineItems, allPriceBook] = await Promise.all([
+      db.select().from(companySettings).limit(1),
       db.select().from(customers),
       db.select().from(jobs),
       db.select().from(jobLineItems),
       db.select().from(priceBookItems),
     ]);
+    const settings = settingsArr[0] || null;
 
     const exportData = {
       exportedAt: new Date().toISOString(),
