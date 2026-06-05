@@ -2,7 +2,6 @@
 
 import "server-only";
 
-import Stripe from "stripe";
 import { db } from "@/lib/db";
 import { companySettings } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -12,7 +11,11 @@ function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error("STRIPE_SECRET_KEY is not configured");
   }
-  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const S = require("stripe");
+  // Stripe CJS exports the constructor directly; handle .default fallback for bundlers
+  const Constructor = S.default ?? S;
+  return new Constructor(process.env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
   });
 }

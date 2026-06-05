@@ -1,14 +1,17 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
+import type { Stripe } from "stripe";
 import { updateSubscriptionInDb } from "@/app/actions/billing";
 
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error("STRIPE_SECRET_KEY is not configured");
   }
-  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const S = require("stripe");
+  const Constructor = S.default ?? S;
+  return new Constructor(process.env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
   });
 }
