@@ -163,7 +163,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="pro-card p-8">
-        <h2 className="text-xl font-semibold tracking-tight mb-4">Welcome to the Trades Service Tool</h2>
+        <h2 className="text-xl font-semibold tracking-tight mb-4">Welcome to SoloPro</h2>
         <p className="text-zinc-600 dark:text-zinc-400 max-w-prose">
           You now have full customer & job management, intelligent quoting, scheduling, a price book, 
           and professional proposal exports. Settings and crew management are live.

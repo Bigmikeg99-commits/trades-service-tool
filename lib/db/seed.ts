@@ -11,7 +11,7 @@ import {
 import { eq } from "drizzle-orm";
 
 async function seed() {
-  console.log("🌱 Seeding Trades Service Tool database...");
+  console.log("🌱 Seeding SoloPro database...");
 
   // Clear existing data (for clean re-seeds during development)
   await db.delete(jobLineItems);
@@ -26,18 +26,18 @@ async function seed() {
   // COMPANY SETTINGS
   // ============================================
   await db.insert(companySettings).values({
-    name: "North Star Mechanical",
-    phone: "(651) 555-0192",
-    email: "office@northstarmech.com",
-    addressLine1: "1847 Vadnais Center Dr",
-    city: "Vadnais Heights",
-    state: "MN",
-    zip: "55110",
-    licenseHvac: "MN-HVAC-48291",
-    licensePlumbing: "MN-PLMB-33917",
-    licenseElectrical: "MN-ELEC-77104",
-    defaultTaxRate: 8.875,
-    defaultTerms: "Thank you for choosing North Star Mechanical. This proposal is valid for 30 days. Payment due within 30 days of invoice. 10% deposit required to schedule work.",
+    name: "SoloPro",
+    phone: "(555) 123-4567",
+    email: "office@solopro.dev",
+    addressLine1: "123 Main St",
+    city: "Your City",
+    state: "CA",
+    zip: "90001",
+    licenseHvac: "LIC-HVAC-0001",
+    licensePlumbing: "LIC-PLMB-0001",
+    licenseElectrical: "LIC-ELEC-0001",
+    defaultTaxRate: 8.5,
+    defaultTerms: "Thank you for choosing SoloPro. This proposal is valid for 30 days. Payment due within 30 days of invoice. 10% deposit required to schedule work.",
   });
   console.log("✓ Company settings created");
 
@@ -81,7 +81,7 @@ async function seed() {
       phone: "(651) 555-9821",
       email: "m.johnson@email.com",
       addressLine1: "1427 County Road E",
-      city: "Vadnais Heights",
+      city: "Springfield",
       state: "MN",
       zip: "55110",
       notes: "2-story colonial. Dog is friendly but loud. Gate code: 4821",
@@ -216,7 +216,7 @@ async function seed() {
   const [job1] = await db.insert(jobs).values({
     customerId: johnson.id,
     title: "Frozen pipe in basement",
-    rawDescription: "frozen pipe in basement, 2-story house in Vadnais Heights",
+    rawDescription: "frozen pipe in basement, 2-story house in Springfield",
     serviceType: "plumbing",
     status: "in_progress",
     scheduledStart: new Date("2026-06-02T08:00:00"),
@@ -260,7 +260,7 @@ async function seed() {
   console.log("✓ Sample jobs + line items created");
 
   console.log("\n✅ Database seeded successfully!");
-  console.log("   - 1 company profile (North Star Mechanical, Vadnais Heights)");
+  console.log("   - 1 company profile (SoloPro)");
   console.log("   - 3 crew members with realistic schedules");
   console.log("   - 4 customers (mostly local to the area)");
   console.log("   - 20+ price book items across all trades");

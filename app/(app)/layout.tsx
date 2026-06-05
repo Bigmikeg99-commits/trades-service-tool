@@ -56,9 +56,9 @@ export default async function ProtectedLayout({
           <div className="flex items-center gap-8">
             <Link href="/dashboard" className="flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">
-                <span className="font-semibold tracking-[-1px]">TS</span>
+                <span className="font-semibold tracking-[-1px]">SP</span>
               </div>
-              <span className="font-semibold tracking-tight">Trades Service Tool</span>
+              <span className="font-semibold tracking-tight">SoloPro</span>
             </Link>
 
             <div className="hidden md:flex items-center gap-6 text-sm">

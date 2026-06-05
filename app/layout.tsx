@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Trades Service Tool",
-  description: "Fast, reliable field service management for HVAC, plumbing, electrical, and general contractors. Runs completely locally.",
+  title: "SoloPro",
+  description: "Fast quotes, reliable scheduling, and clean proposals for solo contractors.",
   icons: {
     icon: "/favicon.ico",
   },

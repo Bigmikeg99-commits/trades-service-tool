@@ -8,10 +8,10 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">
-              <span className="font-semibold text-lg tracking-[-1px]">TS</span>
+              <span className="font-semibold text-lg tracking-[-1px]">SP</span>
             </div>
             <div>
-              <div className="font-semibold tracking-tight">Trades Service Tool</div>
+              <div className="font-semibold tracking-tight">SoloPro</div>
               <div className="text-[10px] text-zinc-500 -mt-0.5">FIELD OPERATIONS</div>
             </div>
           </div>

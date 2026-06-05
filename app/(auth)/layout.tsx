@@ -13,9 +13,9 @@ export default function AuthLayout({
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">
-              <span className="font-semibold tracking-[-1px]">TS</span>
+              <span className="font-semibold tracking-[-1px]">SP</span>
             </div>
-            <span className="font-semibold tracking-tight">Trades Service Tool</span>
+            <span className="font-semibold tracking-tight">SoloPro</span>
           </Link>
           <Link href="/" className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">
             ← Back to home
