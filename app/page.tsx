@@ -39,7 +39,7 @@ export default function LandingPage() {
       {/* Hero */}
       <div className="mx-auto max-w-4xl px-6 pt-20 pb-16 text-center">
         <div className="inline-flex items-center rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium tracking-widest text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 mb-6">
-          RUNS 100% LOCALLY • NO CLOUD REQUIRED
+          BUILT FOR SOLO CONTRACTORS
         </div>
 
         <h1 className="text-6xl font-semibold tracking-tighter text-balance leading-[1.05] mb-6">
