@@ -1,22 +1,5 @@
-// Simple in-memory rate limiter for lightweight local use.
-// Not suitable for multi-instance production without Redis/Upstash.
-
-type RateLimitRecord = {
-  count: number;
-  resetTime: number;
-};
-
-const store = new Map<string, RateLimitRecord>();
-
-// Clean up expired entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, record] of store.entries()) {
-    if (record.resetTime < now) {
-      store.delete(key);
-    }
-  }
-}, 60_000); // Clean every minute
+// Distributed rate limiter using Upstash Redis via @vercel/kv.
+// Falls back to in-memory for local development when KV is not configured.
 
 export interface RateLimitOptions {
   /** Maximum number of requests allowed in the window */
@@ -27,43 +10,81 @@ export interface RateLimitOptions {
   key: string;
 }
 
-export function checkRateLimit(options: RateLimitOptions): {
-  success: boolean;
-  remaining: number;
-  resetTime: number;
-} {
+// ── In-memory fallback (local dev only) ──────────────────────────────────────
+
+type RateLimitRecord = { count: number; resetTime: number };
+const localStore = new Map<string, RateLimitRecord>();
+
+setInterval(() => {
   const now = Date.now();
-  const { key, limit, windowMs } = options;
-
-  let record = store.get(key);
-
-  if (!record || record.resetTime < now) {
-    record = {
-      count: 0,
-      resetTime: now + windowMs,
-    };
-    store.set(key, record);
+  for (const [key, record] of localStore.entries()) {
+    if (record.resetTime < now) localStore.delete(key);
   }
+}, 60_000);
 
+function localRateLimit(options: RateLimitOptions) {
+  const { key, limit, windowMs } = options;
+  const now = Date.now();
+  let record = localStore.get(key);
+  if (!record || record.resetTime < now) {
+    record = { count: 0, resetTime: now + windowMs };
+    localStore.set(key, record);
+  }
   record.count += 1;
-
-  const remaining = Math.max(0, limit - record.count);
-  const success = record.count <= limit;
-
   return {
-    success,
-    remaining,
+    success: record.count <= limit,
+    remaining: Math.max(0, limit - record.count),
     resetTime: record.resetTime,
   };
 }
 
-export function getClientIP(headers: Headers): string {
-  // Common headers in different hosting environments
-  const forwarded = headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0].trim();
+// ── Distributed rate limit via Redis ─────────────────────────────────────────
+
+async function redisRateLimit(options: RateLimitOptions) {
+  const { kv } = await import("@vercel/kv");
+  const { key, limit, windowMs } = options;
+  const windowSec = Math.ceil(windowMs / 1000);
+  const now = Date.now();
+
+  // INCR atomically increments (creates key at 0 first if missing)
+  const count = await kv.incr(key);
+  if (count === 1) {
+    // First request in this window — set expiry
+    await kv.expire(key, windowSec);
   }
 
+  const ttl = await kv.ttl(key);
+  const resetTime = ttl > 0 ? now + ttl * 1000 : now + windowMs;
+
+  return {
+    success: count <= limit,
+    remaining: Math.max(0, limit - count),
+    resetTime,
+  };
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
+export async function checkRateLimit(options: RateLimitOptions): Promise<{
+  success: boolean;
+  remaining: number;
+  resetTime: number;
+}> {
+  // Use Redis in production; fall back to in-memory locally
+  if (process.env.KV_REST_API_URL) {
+    try {
+      return await redisRateLimit(options);
+    } catch (err) {
+      console.error("[RateLimit] Redis error, falling back to local:", err);
+      return localRateLimit(options);
+    }
+  }
+  return localRateLimit(options);
+}
+
+export function getClientIP(headers: Headers): string {
+  const forwarded = headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
   return (
     headers.get("x-real-ip") ||
     headers.get("cf-connecting-ip") ||

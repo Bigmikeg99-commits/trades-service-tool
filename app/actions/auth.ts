@@ -45,7 +45,7 @@ export async function signup(prevState: any, formData: FormData) {
   const ip = getClientIP(requestHeaders);
 
   // Rate limit signup attempts (prevent abuse)
-  const rateLimit = checkRateLimit({
+  const rateLimit = await checkRateLimit({
     key: `signup:${ip}`,
     limit: 3,
     windowMs: 60 * 60 * 1000, // 1 hour
@@ -115,7 +115,7 @@ export async function login(prevState: any, formData: FormData) {
   const ip = getClientIP(requestHeaders);
 
   // Rate limit: 5 login attempts per 15 minutes per IP
-  const rateLimit = checkRateLimit({
+  const rateLimit = await checkRateLimit({
     key: `login:${ip}`,
     limit: 5,
     windowMs: 15 * 60 * 1000, // 15 minutes
