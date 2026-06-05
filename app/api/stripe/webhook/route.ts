@@ -10,8 +10,7 @@ function getStripe() {
   }
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const S = require("stripe");
-  const Constructor = S.default ?? S;
-  return new Constructor(process.env.STRIPE_SECRET_KEY, {
+  return new S(process.env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
   });
 }
