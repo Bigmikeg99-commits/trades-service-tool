@@ -2,6 +2,7 @@
 
 import "server-only";
 
+import Stripe from "stripe";
 import { db } from "@/lib/db";
 import { companySettings } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -11,8 +12,6 @@ function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error("STRIPE_SECRET_KEY is not configured");
   }
-  // Dynamic import to avoid build-time evaluation issues
-  const Stripe = require("stripe").default;
   return new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
   });

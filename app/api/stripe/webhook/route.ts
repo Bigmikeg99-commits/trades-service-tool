@@ -1,18 +1,24 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import type { Stripe } from "stripe";
+import Stripe from "stripe";
 import { updateSubscriptionInDb } from "@/app/actions/billing";
 
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error("STRIPE_SECRET_KEY is not configured");
   }
-  // Dynamic import to avoid build-time evaluation issues
-  const Stripe = require("stripe").default;
   return new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
   });
+}
+
+// Resolve plan name from a Stripe Price object.
+// Prefers lookup_key (set in Stripe dashboard), falls back to matching env var price IDs.
+function resolvePlan(price: Stripe.Price): string | undefined {
+  if (price.lookup_key === "pro" || price.id === process.env.STRIPE_PRO_PRICE_ID) return "pro";
+  if (price.lookup_key === "team" || price.id === process.env.STRIPE_TEAM_PRICE_ID) return "team";
+  return price.lookup_key ?? undefined;
 }
 
 export async function POST(request: Request) {
@@ -40,14 +46,16 @@ export async function POST(request: Request) {
 
         if (session.mode === "subscription" && session.subscription) {
           const subscription = await stripe.subscriptions.retrieve(
-            session.subscription as string
+            session.subscription as string,
+            { expand: ["items.data.price"] }
           );
 
+          const price = subscription.items.data[0]?.price;
           await updateSubscriptionInDb({
             customerId: session.customer as string,
             subscriptionId: subscription.id,
             status: subscription.status,
-            plan: subscription.items.data[0]?.price.lookup_key || undefined,
+            plan: price ? resolvePlan(price) : undefined,
             currentPeriodEnd: (subscription as any).current_period_end,
           });
         }
@@ -57,10 +65,13 @@ export async function POST(request: Request) {
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
+        const price = subscription.items.data[0]?.price;
 
-        const newPlan = subscription.status === "canceled" || subscription.status === "unpaid" 
-          ? "free" 
-          : (subscription.items.data[0]?.price.lookup_key || undefined);
+        const newPlan =
+          subscription.status === "canceled" || subscription.status === "unpaid"
+            ? "free"
+            : price ? resolvePlan(price) : undefined;
+
         await updateSubscriptionInDb({
           customerId: subscription.customer as string,
           subscriptionId: subscription.id,
