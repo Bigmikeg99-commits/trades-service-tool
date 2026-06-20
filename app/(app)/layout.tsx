@@ -29,14 +29,30 @@ export default async function ProtectedLayout({
 
   const subscription = await getSubscriptionStatus();
   const plan = (subscription.plan || "free").toLowerCase();
-  const isActiveSub =
-    subscription.status === "active" || subscription.status === "trialing";
+  const isTrialing = subscription.status === "trialing";
+  const isActiveSub = subscription.status === "active" || isTrialing;
   const isFree = plan === "free";
   // Only show upgrade banner for paid plans that are inactive (free users get basic access without nag)
   const showUpgradeBanner = !isFree && !isActiveSub;
+  const trialDaysLeft =
+    isTrialing && subscription.currentPeriodEnd
+      ? Math.max(0, Math.ceil((subscription.currentPeriodEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+      : null;
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      {/* Trial Banner - reminds trialing users when the free trial ends */}
+      {isTrialing && trialDaysLeft !== null && (
+        <div className="bg-blue-50 border-b border-blue-200 px-4 py-2 text-center text-sm dark:bg-blue-950 dark:border-blue-900">
+          <span className="text-blue-800 dark:text-blue-200">
+            You're on a free trial of Pro — {trialDaysLeft} day{trialDaysLeft === 1 ? "" : "s"} left.{" "}
+            <Link href="/billing" className="font-medium underline hover:no-underline">
+              Manage billing
+            </Link>
+          </span>
+        </div>
+      )}
+
       {/* Subscription Status Banner - only for lapsed paid plans; Free tier users see no banner */}
       {showUpgradeBanner && (
         <div className="bg-amber-100 border-b border-amber-200 px-4 py-2 text-center text-sm dark:bg-amber-950 dark:border-amber-900">

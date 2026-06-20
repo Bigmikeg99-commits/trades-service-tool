@@ -38,6 +38,12 @@ export async function createCheckoutSession(priceId: string) {
 
   let customerId = settings.stripeCustomerId;
 
+  // The 14-day free trial only ever applies to the Pro plan, and only the first
+  // time an account subscribes — once hasUsedTrial is set, future checkouts
+  // (including re-subscribing after a cancellation) go straight to a paid start.
+  const isProPlan = !!priceId && priceId === process.env.STRIPE_PRO_PRICE_ID;
+  const trialEligible = isProPlan && !settings.hasUsedTrial;
+
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     line_items: [
@@ -46,6 +52,19 @@ export async function createCheckoutSession(priceId: string) {
         quantity: 1,
       },
     ],
+    ...(trialEligible
+      ? {
+          subscription_data: {
+            trial_period_days: 14,
+            trial_settings: {
+              end_behavior: { missing_payment_method: "cancel" },
+            },
+          },
+          // Require a card up front so the trial converts automatically into a
+          // real subscription at the end of 14 days with no surprise gap.
+          payment_method_collection: "always" as const,
+        }
+      : {}),
     success_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/billing?success=true`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/billing?canceled=true`,
     customer: customerId || undefined,
@@ -79,7 +98,12 @@ export async function getSubscriptionStatus() {
   const settings = (await db.select().from(companySettings).limit(1))[0];
 
   if (!settings) {
-    return { status: "inactive" as const, plan: "free" as const };
+    return {
+      status: "inactive" as const,
+      plan: "free" as const,
+      currentPeriodEnd: null,
+      hasUsedTrial: false,
+    };
   }
 
   let plan = (settings.subscriptionPlan || "free").toLowerCase();
@@ -87,9 +111,12 @@ export async function getSubscriptionStatus() {
   return {
     status: (settings.subscriptionStatus || "inactive") as string,
     plan: plan,
+    // While status === "trialing", Stripe's current_period_end IS the trial end date,
+    // so this same field doubles as "trial ends on" in the UI.
     currentPeriodEnd: settings.subscriptionCurrentPeriodEnd
       ? new Date(settings.subscriptionCurrentPeriodEnd)
       : null,
+    hasUsedTrial: settings.hasUsedTrial ?? false,
   };
 }
 
@@ -112,6 +139,9 @@ export async function updateSubscriptionInDb(params: {
       subscriptionCurrentPeriodEnd: params.currentPeriodEnd
         ? new Date(params.currentPeriodEnd * 1000)
         : settings.subscriptionCurrentPeriodEnd,
+      // Once an account ever reaches "trialing", permanently mark the trial as used
+      // so a future checkout (even after cancel/resubscribe) won't grant a second one.
+      hasUsedTrial: params.status === "trialing" ? true : settings.hasUsedTrial,
       updatedAt: new Date(),
     })
     .where(eq(companySettings.id, settings.id));

@@ -62,12 +62,20 @@ export default async function BillingPage() {
   const subscription = await getSubscriptionStatus();
 
   const currentPlan = (subscription.plan || "free").toLowerCase();
-  const isActive = subscription.status === "active" || subscription.status === "trialing";
+  const isTrialing = subscription.status === "trialing";
+  const isActive = subscription.status === "active" || isTrialing;
   const isPaidActive = isActive && (currentPlan === "pro" || currentPlan === "team");
+  const trialEligible = !subscription.hasUsedTrial;
 
   // Normalize display name
-  const currentPlanDisplay = currentPlan === "free" ? "Free" : 
+  const currentPlanDisplay = currentPlan === "free" ? "Free" :
     currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1);
+
+  // While trialing, currentPeriodEnd doubles as the trial end date.
+  const trialDaysLeft =
+    isTrialing && subscription.currentPeriodEnd
+      ? Math.max(0, Math.ceil((subscription.currentPeriodEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+      : null;
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -85,9 +93,14 @@ export default async function BillingPage() {
             <div className="text-sm text-zinc-500">Current Plan</div>
             <div className="text-2xl font-semibold tracking-tight mt-1 flex items-center gap-3">
               {currentPlanDisplay}
-              {isActive && (currentPlan === "pro" || currentPlan === "team") && (
+              {isActive && !isTrialing && (currentPlan === "pro" || currentPlan === "team") && (
                 <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
                   Active
+                </span>
+              )}
+              {isTrialing && (currentPlan === "pro" || currentPlan === "team") && (
+                <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                  Free Trial{trialDaysLeft !== null ? ` — ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left` : ""}
                 </span>
               )}
               {currentPlan === "free" && (
@@ -98,7 +111,9 @@ export default async function BillingPage() {
             </div>
             {subscription.currentPeriodEnd && isPaidActive && (
               <div className="text-xs text-zinc-500 mt-1">
-                Renews {subscription.currentPeriodEnd.toLocaleDateString()}
+                {isTrialing
+                  ? `Trial ends ${subscription.currentPeriodEnd.toLocaleDateString()} — your card will then be charged unless you cancel`
+                  : `Renews ${subscription.currentPeriodEnd.toLocaleDateString()}`}
               </div>
             )}
           </div>
@@ -125,7 +140,10 @@ export default async function BillingPage() {
         </div>
         {!isPaidActive && currentPlan === "free" && (
           <div className="mt-3 text-xs text-zinc-500">
-            You're on the Free plan. Upgrade for unlimited jobs and advanced features.
+            You're on the Free plan.{" "}
+            {trialEligible
+              ? "Try Pro free for 14 days — unlimited jobs and advanced features, no charge until the trial ends."
+              : "Upgrade for unlimited jobs and advanced features."}
           </div>
         )}
       </div>
@@ -164,6 +182,12 @@ export default async function BillingPage() {
               <div className="mt-1 text-xl font-semibold tracking-tight">{tier.name}</div>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{tier.description}</p>
 
+              {tier.tier === "pro" && trialEligible && !isCurrent && (
+                <div className="mt-3 inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                  14-day free trial — no charge until it ends
+                </div>
+              )}
+
               <ul className="mt-6 space-y-3 text-sm flex-1">
                 {tier.features.map((feature, i) => (
                   <li key={i} className="flex items-start gap-2">
@@ -191,7 +215,9 @@ export default async function BillingPage() {
                         type="submit"
                         className="w-full rounded-lg bg-zinc-900 py-3 text-sm font-semibold text-white hover:bg-black dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
                       >
-                        {currentPlan === "free" ? "Subscribe" : "Upgrade"} to {tier.name}
+                        {tier.tier === "pro" && trialEligible
+                          ? "Start 14-day free trial"
+                          : `${currentPlan === "free" ? "Subscribe" : "Upgrade"} to ${tier.name}`}
                       </button>
                     </form>
                   )
@@ -245,7 +271,9 @@ export default async function BillingPage() {
       </div>
 
       <div className="mt-10 text-center text-xs text-zinc-500">
-        Payments are processed securely by Stripe. You can cancel anytime.
+        New Pro subscriptions include a 14-day free trial — your card is required to start, but you won&apos;t be charged until the trial ends, and you can cancel anytime before then at no cost.
+        <br />
+        Payments are processed securely by Stripe.
         <br />
         Test mode is enabled — no real charges will be made. Add your keys in .env for live.
       </div>

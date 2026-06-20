@@ -51,6 +51,10 @@ export const companySettings = pgTable("company_settings", {
   subscriptionPlan: text("subscription_plan"), // "free" | "pro" | "team"
   subscriptionId: text("subscription_id"), // Stripe subscription ID
   subscriptionCurrentPeriodEnd: timestamp("subscription_current_period_end"),
+  // True once this account has ever started a trial (current_period_end doubles as
+  // trial_end while status === "trialing"). Used to prevent re-using the 14-day
+  // Pro trial after it has already been started once.
+  hasUsedTrial: boolean("has_used_trial").notNull().default(false),
 
   updatedAt: timestamp("updated_at").defaultNow(),
 });
