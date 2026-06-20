@@ -100,7 +100,7 @@ export async function updateCompanySettings(formData: FormData) {
   const ip = getClientIP(requestHeaders);
 
   // Rate limit sensitive company settings changes
-  const rateLimit = checkRateLimit({
+  const rateLimit = await checkRateLimit({
     key: `company-settings:${ip}`,
     limit: 10,
     windowMs: 5 * 60 * 1000, // 5 minutes
