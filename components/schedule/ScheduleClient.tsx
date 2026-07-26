@@ -101,6 +101,17 @@ export function ScheduleClient({
     selectedStatuses.includes(job.status)
   );
 
+  // Week boundary: first and last day in dayInfos (used to filter the Scheduled Jobs list to current week only)
+  const weekStart = dayInfos.length > 0 ? new Date(dayInfos[0].iso) : null;
+  const weekEndDate = dayInfos.length > 0 ? new Date(dayInfos[dayInfos.length - 1].iso) : null;
+  if (weekEndDate) weekEndDate.setHours(23, 59, 59, 999);
+
+  const filteredJobsThisWeek = filteredJobs.filter((job) => {
+    if (!job.scheduledStart || !weekStart || !weekEndDate) return false;
+    const jobStart = new Date(job.scheduledStart);
+    return jobStart >= weekStart && jobStart <= weekEndDate;
+  });
+
   // Handle assignment from a suggestion slot (proper client pattern: handler defined here, no prop passing from server)
   const handleAssignToSlot = async (slot: SuggestionSlot) => {
     if (!selectedJobId) {
@@ -276,16 +287,16 @@ export function ScheduleClient({
       </div>
 
       <div className="text-xs text-zinc-500">
-        {filteredJobs.length} of {allJobs.length} job{allJobs.length === 1 ? "" : "s"} shown
+        {filteredJobsThisWeek.length} of {allJobs.length} job{allJobs.length === 1 ? "" : "s"} shown this week
       </div>
 
       <div className="pro-card p-4">
-        <h4 className="font-semibold mb-2 text-sm">Scheduled Jobs</h4>
-        {filteredJobs.length === 0 ? (
-          <p className="text-xs text-zinc-500">No jobs match the selected filters.</p>
+        <h4 className="font-semibold mb-2 text-sm">Jobs This Week</h4>
+        {filteredJobsThisWeek.length === 0 ? (
+          <p className="text-xs text-zinc-500">No scheduled jobs this week match the selected filters.</p>
         ) : (
           <div className="space-y-2 text-xs">
-            {filteredJobs.map((job) => {
+            {filteredJobsThisWeek.map((job) => {
               const crew = crews.find((c) => c.id === job.assignedPrimaryCrewId);
               return (
                 <div key={job.id} className="flex items-center justify-between border-b pb-1 last:border-b-0 last:pb-0">
@@ -336,7 +347,7 @@ export function ScheduleClient({
 
             {assignMessage && <p className="text-xs mb-2 text-amber-600">{assignMessage}</p>}
 
-            <p className="text-xs text-zinc-500 mb-2">2. Click an available suggestion slot (filtered by your crew toggles above):</p>
+            <p className="text-xs text-zinc-500 mb-2">Click an available suggestion slot below (filtered by your crew toggles above):</p>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
               {filteredSuggestions.flatMap((sugg) =>
                 sugg.slots.slice(0, 3).map((slot, i) => (
@@ -361,34 +372,6 @@ export function ScheduleClient({
         )}
       </div>
 
-      {/* Original suggestions (now also filterable + shown for reference) */}
-      <div>
-        <h3 className="font-semibold mb-2 text-sm">Available Suggestion Times (click to assign if job selected)</h3>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredSuggestions.map(({ crew, slots }) => (
-            <div key={crew.id} className="pro-card p-4 text-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: crew.color }} />
-                <span className="font-medium">{crew.name}</span>
-              </div>
-              {slots.length > 0 ? (
-                slots.slice(0, 4).map((slot, i) => (
-                  <button
-                    key={i}
-                    disabled={!selectedJobId || isPending}
-                    onClick={() => handleAssignToSlot(slot)}
-                    className="block w-full text-left mb-1 px-2 py-0.5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-60 text-xs text-zinc-600 dark:text-zinc-400"
-                  >
-                    {new Date(slot.start).toLocaleDateString()} at {new Date(slot.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </button>
-                ))
-              ) : (
-                <div className="text-xs text-zinc-500">No open slots</div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

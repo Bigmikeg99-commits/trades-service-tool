@@ -226,7 +226,7 @@ export default function LandingPage() {
               },
               {
                 title: "Scheduling That Makes Sense",
-                desc: "See which jobs are booked, where your crew is, and how much drive time sits between appointments. Overbooking stops being a problem when your calendar actually knows your schedule.",
+                desc: "See which jobs are booked, where your crew is, and how much drive time sits between appointments. Assign jobs to specific technicians and spot open time slots at a glance.",
               },
               {
                 title: "One-Click Proposals",
@@ -307,8 +307,8 @@ export default function LandingPage() {
                 features: [
                   "Everything in Pro",
                   "Multiple crew members",
-                  "Team roles and permissions",
-                  "Advanced scheduling and conflict detection",
+                  "Per-crew schedule views",
+                  "Job assignment by technician",
                   "Full data export",
                 ],
                 cta: "Get started",

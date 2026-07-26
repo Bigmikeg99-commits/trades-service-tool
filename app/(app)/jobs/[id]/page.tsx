@@ -1,6 +1,7 @@
 export const runtime = "nodejs";
 
-import { getJob, updateJobStatus } from "@/app/actions/jobs";
+import { getJob, updateJobStatus, deleteJob } from "@/app/actions/jobs";
+import { redirect } from "next/navigation";
 import { formatStatus, formatServiceType } from "@/lib/format";
 import { generateAndSaveQuote } from "@/app/actions/quotes";
 import { getPriceBookItems } from "@/app/actions/pricebook";
@@ -127,8 +128,25 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
               {job.estimatedLaborHours && (
                 <div><span className="font-medium text-zinc-500">Est. Labor:</span> {job.estimatedLaborHours} hrs</div>
               )}
-              <div><span className="font-medium text-zinc-500">Quote Total:</span> ${job.quoteTotal}</div>
+              <div><span className="font-medium text-zinc-500">Quote Total:</span> {job.quoteTotal && job.quoteTotal > 0 ? `$${Number(job.quoteTotal).toFixed(2)}` : "—"}</div>
             </div>
+          </div>
+
+          <div className="pro-card p-6 text-sm border-red-200 dark:border-red-900">
+            <h2 className="font-semibold mb-3 text-red-700 dark:text-red-400">Danger Zone</h2>
+            <p className="text-zinc-500 dark:text-zinc-400 mb-3">Permanently delete this job and all its line items. This cannot be undone.</p>
+            <form action={async () => {
+              "use server";
+              await deleteJob(id);
+              redirect("/jobs");
+            }}>
+              <button
+                type="submit"
+                className="w-full rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-800 dark:bg-zinc-950 dark:text-red-400 dark:hover:bg-red-950"
+              >
+                Delete Job
+              </button>
+            </form>
           </div>
         </div>
       </div>
@@ -182,7 +200,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           </div>
 
           <div className="mt-6 text-right font-semibold text-lg">
-            Total: ${job.quoteTotal || "—"}
+            Total: {job.quoteTotal && job.quoteTotal > 0 ? `$${Number(job.quoteTotal).toFixed(2)}` : "—"}
           </div>
 
           <div className="mt-10 text-xs text-zinc-500 border-t pt-4">

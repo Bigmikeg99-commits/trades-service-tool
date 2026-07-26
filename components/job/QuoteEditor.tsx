@@ -135,10 +135,11 @@ export function QuoteEditor({ initialDraft, jobId, priceBookItems = [] }: QuoteE
         {/* Quick Add from Price Book - fast one-click add with prefilled price/unit/labor */}
         <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/60">
           <div className="mb-2 flex items-center justify-between">
-            <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Quick Add from Price Book</div>
+            <label htmlFor="pricebook-search" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Quick Add from Price Book</label>
             <div className="text-[10px] text-zinc-500">searches instantly • pre-fills price, unit &amp; labor</div>
           </div>
           <input
+            id="pricebook-search"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -196,6 +197,7 @@ export function QuoteEditor({ initialDraft, jobId, priceBookItems = [] }: QuoteE
           <div key={index} className="grid grid-cols-12 gap-3 items-end border-b pb-4">
             <div className="col-span-5">
               <input
+                aria-label={`Line item ${index + 1} description`}
                 value={item.description}
                 onChange={(e) => updateLineItem(index, "description", e.target.value)}
                 className="w-full rounded-md border px-3 py-1.5 text-sm"
@@ -204,6 +206,7 @@ export function QuoteEditor({ initialDraft, jobId, priceBookItems = [] }: QuoteE
             <div className="col-span-2">
               <input
                 type="number"
+                aria-label={`Line item ${index + 1} quantity`}
                 value={item.quantity}
                 onChange={(e) => updateLineItem(index, "quantity", parseFloat(e.target.value) || 0)}
                 className="w-full rounded-md border px-3 py-1.5 text-sm"
@@ -211,9 +214,10 @@ export function QuoteEditor({ initialDraft, jobId, priceBookItems = [] }: QuoteE
             </div>
             <div className="col-span-2">
               <div className="flex">
-                <span className="px-2 py-1.5 text-sm text-zinc-500">$</span>
+                <span className="px-2 py-1.5 text-sm text-zinc-500" aria-hidden="true">$</span>
                 <input
                   type="number"
+                  aria-label={`Line item ${index + 1} unit price in dollars`}
                   value={item.unitPrice}
                   onChange={(e) => updateLineItem(index, "unitPrice", parseFloat(e.target.value) || 0)}
                   className="w-full rounded-md border px-3 py-1.5 text-sm"
@@ -264,6 +268,7 @@ export function QuoteEditor({ initialDraft, jobId, priceBookItems = [] }: QuoteE
               type="number"
               step="0.1"
               min="0"
+              aria-label="Estimated labor hours"
               value={draft.estimatedLaborHours}
               onChange={(e) => setDraft({ ...draft, estimatedLaborHours: Math.max(0, parseFloat(e.target.value) || 0) })}
               className="w-14 rounded border px-1 py-0.5 text-xs font-medium dark:bg-zinc-950"
@@ -275,6 +280,7 @@ export function QuoteEditor({ initialDraft, jobId, priceBookItems = [] }: QuoteE
             <input
               type="number"
               min="0"
+              aria-label="Suggested travel time in minutes"
               value={draft.suggestedTravelMin}
               onChange={(e) => setDraft({ ...draft, suggestedTravelMin: Math.max(0, parseInt(e.target.value) || 0) })}
               className="w-14 rounded border px-1 py-0.5 text-xs font-medium dark:bg-zinc-950"

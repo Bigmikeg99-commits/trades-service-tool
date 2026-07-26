@@ -201,6 +201,13 @@ export async function getJob(id: string) {
   };
 }
 
+export async function deleteJob(jobId: string) {
+  await db.delete(jobLineItems).where(eq(jobLineItems.jobId, jobId));
+  await db.delete(jobs).where(eq(jobs.id, jobId));
+  revalidatePath("/jobs");
+  revalidatePath("/dashboard");
+}
+
 export async function getJobsForCustomer(customerId: string) {
   return await db
     .select()
