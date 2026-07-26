@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   title: "SoloPro — Field Service Software for Contractors",
   description: "Fast quotes, professional proposals, and smart scheduling for HVAC, plumbing, electrical, and general contractors. Built for the truck, not the conference room.",
   metadataBase: new URL("https://solopro.dev"),
+  alternates: {
+    canonical: "https://solopro.dev",
+  },
   icons: {
     icon: "/favicon.ico",
   },

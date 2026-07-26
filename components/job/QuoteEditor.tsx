@@ -81,7 +81,7 @@ export function QuoteEditor({ initialDraft, jobId, priceBookItems = [] }: QuoteE
   const filteredPriceBook = (priceBookItems || [])
     .filter((item) => {
       const q = searchQuery.trim().toLowerCase();
-      if (!q) return true;
+      if (!q) return false;
       return (
         item.name.toLowerCase().includes(q) ||
         (item.sku && item.sku.toLowerCase().includes(q)) ||
@@ -146,7 +146,7 @@ export function QuoteEditor({ initialDraft, jobId, priceBookItems = [] }: QuoteE
             placeholder="Search items (filter, capacitor, labor...)"
             className="mb-2 w-full rounded-md border px-3 py-1.5 text-sm dark:bg-zinc-950"
           />
-          {filteredPriceBook.length > 0 ? (
+          {filteredPriceBook.length > 0 && (
             <div className="max-h-44 overflow-auto divide-y divide-zinc-200 rounded border bg-white text-sm dark:divide-zinc-800 dark:bg-zinc-950">
               {filteredPriceBook.map((item) => {
                 const laborH = ((item.typicalLaborMin ?? 0) as number) / 60;
@@ -175,11 +175,14 @@ export function QuoteEditor({ initialDraft, jobId, priceBookItems = [] }: QuoteE
                 );
               })}
             </div>
-          ) : (
+          )}
+          {filteredPriceBook.length === 0 && (
             <div className="py-1 text-xs text-zinc-500">
               {priceBookItems.length === 0
                 ? "No price book items yet — add some on the Price Book page."
-                : "No matches. Try a different search."}
+                : searchQuery.trim()
+                  ? "No matches. Try a different search term."
+                  : "Type to search your price book."}
             </div>
           )}
           {searchQuery && (

@@ -95,7 +95,26 @@ export default async function SchedulePage({
   const precomputedSuggestions = await Promise.all(
     crewsForSuggestions.map(async (crew) => {
       const slots = await findAvailableSlots(crew.id, 120, startOfWeek, 30);
-      return { crew, slots };
+      return {
+        crew,
+        slots: slots.map((slot) => {
+          // Pre-format display string on the server to prevent hydration mismatch.
+          // toLocaleTimeString() is timezone-dependent — calling it client-side
+          // produces a different string when the server timezone differs from the
+          // browser timezone, which triggers React error #418.
+          const slotDate = new Date(slot.start);
+          const startDisplay =
+            slotDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) +
+            " @ " +
+            slotDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+          return {
+            ...slot,
+            start: slotDate.toISOString(),
+            end: new Date(slot.end).toISOString(),
+            startDisplay,
+          };
+        }),
+      };
     })
   );
 

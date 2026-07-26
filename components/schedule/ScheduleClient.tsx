@@ -29,6 +29,7 @@ type SuggestionSlot = {
   end: string | Date;
   crewId: string;
   crewName: string;
+  startDisplay?: string; // Pre-formatted on server to avoid hydration mismatch
 };
 
 type PrecomputedSuggestion = {
@@ -361,7 +362,7 @@ export function ScheduleClient({
                   >
                     <div className="font-medium">{sugg.crew.name}</div>
                     <div className="text-zinc-600 dark:text-zinc-400">
-                      {new Date(slot.start).toLocaleDateString()} @ {new Date(slot.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      {slot.startDisplay ?? new Date(slot.start).toISOString().slice(0, 16).replace("T", " ")}
                     </div>
                     <div className="text-[10px] mt-1 text-emerald-600">Assign here →</div>
                   </button>

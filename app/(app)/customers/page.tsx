@@ -104,38 +104,38 @@ export default async function CustomersPage({
         <h2 className="text-xl font-semibold tracking-tight mb-4">Add New Customer</h2>
         <form action={createCustomer} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium mb-1">Name *</label>
-            <input name="name" required className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
+            <label htmlFor="new-name" className="block text-sm font-medium mb-1">Name *</label>
+            <input id="new-name" name="name" required className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Phone</label>
-            <input name="phone" className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
+            <label htmlFor="new-phone" className="block text-sm font-medium mb-1">Phone</label>
+            <input id="new-phone" name="phone" className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input name="email" type="email" className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
+            <label htmlFor="new-email" className="block text-sm font-medium mb-1">Email</label>
+            <input id="new-email" name="email" type="email" className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium mb-1">Address</label>
-            <input name="addressLine1" className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
+            <label htmlFor="new-addressLine1" className="block text-sm font-medium mb-1">Address</label>
+            <input id="new-addressLine1" name="addressLine1" className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">City</label>
-            <input name="city" className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
+            <label htmlFor="new-city" className="block text-sm font-medium mb-1">City</label>
+            <input id="new-city" name="city" className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">State</label>
-              <input name="state" defaultValue="MN" className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
+              <label htmlFor="new-state" className="block text-sm font-medium mb-1">State</label>
+              <input id="new-state" name="state" defaultValue="MN" className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">ZIP</label>
-              <input name="zip" className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
+              <label htmlFor="new-zip" className="block text-sm font-medium mb-1">ZIP</label>
+              <input id="new-zip" name="zip" className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
             </div>
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium mb-1">Notes</label>
-            <textarea name="notes" rows={2} className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
+            <label htmlFor="new-notes" className="block text-sm font-medium mb-1">Notes</label>
+            <textarea id="new-notes" name="notes" rows={2} className="w-full rounded-md border px-3 py-2 text-sm dark:bg-zinc-950" />
           </div>
           <div className="md:col-span-2 flex items-center gap-3">
             <button 
