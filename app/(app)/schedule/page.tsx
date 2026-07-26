@@ -11,8 +11,12 @@ import { Calendar } from "lucide-react";
 import Link from "next/link";
 import { ScheduleClient } from "@/components/schedule/ScheduleClient";
 
-function getWeekDates(date: Date) {
-  const start = new Date(date);
+function getWeekDates(date: Date, weekOffset: number = 0) {
+  const base = new Date(date);
+  // Apply week offset before snapping to Monday
+  base.setDate(base.getDate() + weekOffset * 7);
+
+  const start = new Date(base);
   start.setDate(start.getDate() - start.getDay() + 1); // Monday
   start.setHours(0, 0, 0, 0);
 
@@ -25,21 +29,40 @@ function getWeekDates(date: Date) {
   return { startOfWeek: start, days };
 }
 
-export default async function SchedulePage() {
-  const today = new Date();
-  const { startOfWeek, days } = getWeekDates(today);
+function formatWeekLabel(start: Date, end: Date): string {
+  const startMonth = start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const endStr = start.getMonth() === end.getMonth()
+    ? end.toLocaleDateString("en-US", { day: "numeric" })
+    : end.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return `${startMonth} – ${endStr}, ${end.getFullYear()}`;
+}
 
-  // Serializable day info for passing to Client Component (for live filtered calendar grid)
+export default async function SchedulePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ week?: string }>;
+}) {
+  const { week } = await searchParams;
+  const weekOffset = Math.max(-52, Math.min(52, parseInt(week ?? "0") || 0));
+
+  const today = new Date();
+  const { startOfWeek, days } = getWeekDates(today, weekOffset);
+  const endOfWeek = days[6];
+
+  const weekLabel = formatWeekLabel(startOfWeek, endOfWeek);
+  const prevWeek = weekOffset - 1;
+  const nextWeek = weekOffset + 1;
+
+  // Serializable day info for passing to Client Component
   const dayInfos = days.map((d) => ({
     iso: d.toISOString(),
     labelShort: d.toLocaleDateString("en-US", { weekday: "short" }),
     dateNum: d.getDate(),
   }));
 
-  const crewAvailability = await getCrewAvailabilityForWeek(startOfWeek, days[6]);
-  
-  // Fetch jobs that have scheduled times (show existing assigned/scheduled jobs regardless of status like "in_progress")
-  // This fixes "Schedule page so it shows existing jobs"
+  await getCrewAvailabilityForWeek(startOfWeek, endOfWeek);
+
+  // All jobs with scheduled times (for the calendar grid)
   const allJobs = await db
     .select()
     .from(jobs)
@@ -50,13 +73,12 @@ export default async function SchedulePage() {
       )
     );
 
-  // Get crew list for assignment
   const crews = await db.select().from(crewMembers).where(eq(crewMembers.active, true));
 
   const hasAnyScheduledJobs = allJobs.length > 0;
   const hasCrew = crews.length > 0;
 
-  // Jobs that can be assigned/scheduled (no crew or no scheduled time yet) - used for interactive assignment UI
+  // Jobs eligible for scheduling (no crew or no start time)
   const assignableJobs = await db
     .select()
     .from(jobs)
@@ -68,8 +90,7 @@ export default async function SchedulePage() {
     )
     .orderBy(jobs.createdAt);
 
-  // Precompute suggestions outside JSX to avoid async-in-render (which breaks React rendering of promises)
-  // Fixes "suggestions not showing"
+  // Suggestions anchored to the displayed week's start
   const crewsForSuggestions = crews.slice(0, 3);
   const precomputedSuggestions = await Promise.all(
     crewsForSuggestions.map(async (crew) => {
@@ -83,13 +104,35 @@ export default async function SchedulePage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-8">
         <div>
           <h1 className="text-4xl font-semibold tracking-tighter">Schedule</h1>
-          <p className="mt-1 text-base text-zinc-600 dark:text-zinc-400">
-            Week of {startOfWeek.toLocaleDateString()}
-          </p>
+          <p className="mt-1 text-base text-zinc-600 dark:text-zinc-400">{weekLabel}</p>
         </div>
-        <Link href="/jobs" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">
-          View all jobs →
-        </Link>
+
+        {/* Week navigation */}
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/schedule?week=${prevWeek}`}
+            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+          >
+            ← Prev
+          </Link>
+          {weekOffset !== 0 && (
+            <Link
+              href="/schedule"
+              className="text-sm text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+            >
+              This week
+            </Link>
+          )}
+          <Link
+            href={`/schedule?week=${nextWeek}`}
+            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+          >
+            Next →
+          </Link>
+          <Link href="/jobs" className="ml-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">
+            All jobs →
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -99,8 +142,8 @@ export default async function SchedulePage() {
           <div className="space-y-3">
             {crews.map((crew) => (
               <div key={crew.id} className="flex items-center gap-3">
-                <div 
-                  className="w-4 h-4 rounded-full" 
+                <div
+                  className="w-4 h-4 rounded-full"
                   style={{ backgroundColor: crew.color }}
                 />
                 <div>
@@ -116,7 +159,7 @@ export default async function SchedulePage() {
           </div>
         </div>
 
-        {/* Week Calendar + Filters + Assignments (interactive parts in Client Component for proper event handler patterns, live responding filters, and working calendar assignments) */}
+        {/* Calendar + Filters + Assignments */}
         <div className="lg:col-span-3">
           {!hasAnyScheduledJobs && hasCrew && (
             <div className="mb-4">
@@ -128,19 +171,16 @@ export default async function SchedulePage() {
             </div>
           )}
 
-          {/* Legend for the (now interactive/filterable) calendar below */}
           <div className="mt-1 mb-2 text-xs text-zinc-500">
             Each colored block is a scheduled job. Travel time is shown before each appointment. Use the filters above to focus on a specific crew member or job status.
           </div>
 
-          {/* Interactive Client Component: FULL live calendar grid (filtered), view toggles (crew/status filters), pending job selector, and working calendar assignment buttons.
-             All event handlers, state, and onClick/onToggle logic live inside this Client Component. Server page passes ONLY serializable data props (no functions/handlers). */}
           <ScheduleClient
             allJobs={allJobs as any}
             crews={crews as any}
             assignableJobs={assignableJobs as any}
             precomputedSuggestions={precomputedSuggestions as any}
-            weekLabel={startOfWeek.toLocaleDateString()}
+            weekLabel={weekLabel}
             dayInfos={dayInfos}
           />
         </div>
