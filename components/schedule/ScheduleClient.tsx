@@ -44,6 +44,9 @@ interface ScheduleClientProps {
   precomputedSuggestions: PrecomputedSuggestion[];
   weekLabel: string; // e.g. start date string
   dayInfos: Array<{ iso: string; labelShort: string; dateNum: number }>;
+  // Pre-computed server-side: maps "dayIndex-hourOffset" → job IDs in that cell.
+  // Eliminates timezone-sensitive setHours() calls from the render path (source of #418).
+  cellJobMap: Record<string, string[]>;
 }
 
 const timeSlots = Array.from({ length: 12 }, (_, i) => 7 + i); // 7am to 6pm
@@ -55,6 +58,7 @@ export function ScheduleClient({
   precomputedSuggestions,
   weekLabel,
   dayInfos,
+  cellJobMap,
 }: ScheduleClientProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -102,15 +106,16 @@ export function ScheduleClient({
     selectedStatuses.includes(job.status)
   );
 
-  // Week boundary: first and last day in dayInfos (used to filter the Scheduled Jobs list to current week only)
-  const weekStart = dayInfos.length > 0 ? new Date(dayInfos[0].iso) : null;
-  const weekEndDate = dayInfos.length > 0 ? new Date(dayInfos[dayInfos.length - 1].iso) : null;
-  if (weekEndDate) weekEndDate.setHours(23, 59, 59, 999);
+  // Week boundary in epoch ms — pure arithmetic, no setHours(), no timezone dependency.
+  // dayInfos[0].iso = midnight UTC on Monday; dayInfos[6].iso = midnight UTC on Sunday.
+  // Adding 24h to Sunday midnight and subtracting 1ms = 23:59:59.999 UTC Sunday.
+  const weekStartMs = dayInfos.length > 0 ? new Date(dayInfos[0].iso).getTime() : null;
+  const weekEndMs = dayInfos.length > 0 ? new Date(dayInfos[dayInfos.length - 1].iso).getTime() + 24 * 3600 * 1000 - 1 : null;
 
   const filteredJobsThisWeek = filteredJobs.filter((job) => {
-    if (!job.scheduledStart || !weekStart || !weekEndDate) return false;
-    const jobStart = new Date(job.scheduledStart);
-    return jobStart >= weekStart && jobStart <= weekEndDate;
+    if (!job.scheduledStart || weekStartMs === null || weekEndMs === null) return false;
+    const jobStartMs = new Date(job.scheduledStart as string | number).getTime();
+    return jobStartMs >= weekStartMs && jobStartMs <= weekEndMs;
   });
 
   // Handle assignment from a suggestion slot (proper client pattern: handler defined here, no prop passing from server)
@@ -238,18 +243,10 @@ export function ScheduleClient({
                   {hour}:00
                 </div>
                 {dayInfos.map((dInfo, dayIndex) => {
-                  const day = new Date(dInfo.iso);
-                  const cellStart = new Date(day);
-                  cellStart.setHours(hour, 0, 0, 0);
-                  const cellEnd = new Date(cellStart);
-                  cellEnd.setHours(hour + 1);
-
-                  const jobsInCell = filteredJobs.filter((job) => {
-                    if (!job.scheduledStart || !job.scheduledEnd) return false;
-                    const jobStart = new Date(job.scheduledStart);
-                    const jobEnd = new Date(job.scheduledEnd);
-                    return jobStart < cellEnd && jobEnd > cellStart;
-                  });
+                  // Use pre-computed server-side cell map — no setHours() here.
+                  const hourOffset = hour - 7;
+                  const cellJobIds = cellJobMap[`${dayIndex}-${hourOffset}`] ?? [];
+                  const jobsInCell = filteredJobs.filter((job) => cellJobIds.includes(job.id));
 
                   const crewForJob = (job: Job) => crews.find((c) => c.id === job.assignedPrimaryCrewId);
 

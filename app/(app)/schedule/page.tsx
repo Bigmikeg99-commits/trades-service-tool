@@ -90,6 +90,32 @@ export default async function SchedulePage({
     )
     .orderBy(jobs.createdAt);
 
+  // Pre-compute which job IDs land in which calendar cells.
+  // Done server-side so the client never calls setHours() during render.
+  // setHours() is timezone-local — server (UTC) and browser (CDT) produce different
+  // epoch values for the same "hour", which makes jobsInCell differ and triggers #418.
+  const timeSlotHours = Array.from({ length: 12 }, (_, i) => 7 + i); // 7am–6pm
+  const cellJobMap: Record<string, string[]> = {};
+  for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
+    const day = days[dayIndex];
+    for (let hourOffset = 0; hourOffset < 12; hourOffset++) {
+      const hour = 7 + hourOffset;
+      const cellStart = new Date(day);
+      cellStart.setHours(hour, 0, 0, 0);
+      const cellEnd = new Date(day);
+      cellEnd.setHours(hour + 1, 0, 0, 0);
+      const key = `${dayIndex}-${hourOffset}`;
+      cellJobMap[key] = allJobs
+        .filter((job) => {
+          if (!job.scheduledStart || !job.scheduledEnd) return false;
+          const jobStart = new Date(job.scheduledStart as string);
+          const jobEnd = new Date(job.scheduledEnd as string);
+          return jobStart < cellEnd && jobEnd > cellStart;
+        })
+        .map((job) => job.id as string);
+    }
+  }
+
   // Suggestions anchored to the displayed week's start
   const crewsForSuggestions = crews.slice(0, 3);
   const precomputedSuggestions = await Promise.all(
@@ -201,6 +227,7 @@ export default async function SchedulePage({
             precomputedSuggestions={precomputedSuggestions as any}
             weekLabel={weekLabel}
             dayInfos={dayInfos}
+            cellJobMap={cellJobMap}
           />
         </div>
       </div>
