@@ -226,9 +226,9 @@ async function seed() {
     travelTimeMin: 25,
     estimatedLaborHours: 3.5,
     assignedPrimaryCrewId: sarah.id,
-    quoteSubtotal: 580,
-    quoteTax: 51.5,
-    quoteTotal: 631.5,
+    quoteSubtotal: 668.50,
+    quoteTax: 59.33,
+    quoteTotal: 727.83,
     notes: "Customer reports water dripping from ceiling. Found burst pipe behind drywall.",
   }).returning();
 
@@ -246,9 +246,9 @@ async function seed() {
     serviceType: "hvac",
     status: "quoted",
     estimatedLaborHours: 2.25,
-    quoteSubtotal: 365,
-    quoteTax: 32.4,
-    quoteTotal: 397.4,
+    quoteSubtotal: 428.50,
+    quoteTax: 38.03,
+    quoteTotal: 466.53,
     notes: "Furnace making clicking noise but no heat. Likely igniter or sensor.",
   }).returning();
 
@@ -282,9 +282,9 @@ async function seed() {
     travelTimeMin: 30,
     estimatedLaborHours: 2.0,
     assignedPrimaryCrewId: dave.id,
-    quoteSubtotal: 479,
-    quoteTax: 40.72,
-    quoteTotal: 519.72,
+    quoteSubtotal: 485.00,
+    quoteTax: 43.04,
+    quoteTotal: 528.04,
     notes: "Panel is in the basement mechanical room. Building manager will meet at 9 AM.",
   }).returning();
 
@@ -306,9 +306,9 @@ async function seed() {
     travelTimeMin: 25,
     estimatedLaborHours: 1.5,
     assignedPrimaryCrewId: mike.id,
-    quoteSubtotal: 282,
-    quoteTax: 23.97,
-    quoteTotal: 305.97,
+    quoteSubtotal: 281.13,
+    quoteTax: 24.95,
+    quoteTotal: 306.07,
     notes: "Replaced run capacitor and cleaned coils. Unit cooling normally at completion.",
   }).returning();
 
@@ -326,7 +326,7 @@ async function seed() {
   console.log("   - 4 customers");
   console.log("   - 20+ price book items across all trades");
   console.log("   - 3 job templates for the estimator");
-  console.log("   - 5 sample jobs covering every status (lead, quoted, scheduled, in progress, completed)");
+  console.log("   - 5 sample jobs covering every status (lead, quoted, scheduled, in progress, completed) — totals match line items at 8.875% tax");
 }
 
 seed()

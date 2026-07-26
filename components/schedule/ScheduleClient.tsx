@@ -287,7 +287,8 @@ export function ScheduleClient({
       </div>
 
       <div className="text-xs text-zinc-500">
-        {filteredJobsThisWeek.length} of {allJobs.length} job{allJobs.length === 1 ? "" : "s"} shown this week
+        {filteredJobsThisWeek.length} job{filteredJobsThisWeek.length === 1 ? "" : "s"} scheduled this week
+        {allJobs.length > filteredJobsThisWeek.length && ` · ${allJobs.length - filteredJobsThisWeek.length} in other weeks`}
       </div>
 
       <div className="pro-card p-4">

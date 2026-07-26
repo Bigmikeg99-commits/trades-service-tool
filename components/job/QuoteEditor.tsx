@@ -230,6 +230,7 @@ export function QuoteEditor({ initialDraft, jobId, priceBookItems = [] }: QuoteE
             <div className="col-span-1 text-right">
               <button
                 onClick={() => removeLineItem(index)}
+                aria-label={`Remove line item ${index + 1}`}
                 className="text-red-500 hover:text-red-700 text-xs"
               >
                 ✕

@@ -3,7 +3,7 @@
 import "server-only";
 
 import { db } from "@/lib/db";
-import { customers } from "@/lib/db/schema";
+import { customers, jobs } from "@/lib/db/schema";
 import { eq, like, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -129,6 +129,16 @@ export async function updateCustomer(id: string, formData: FormData) {
   revalidatePath("/customers");
   revalidatePath(`/customers/${id}`);
   return { success: true };
+}
+
+export async function deleteCustomer(id: string) {
+  // Only allow deletion if no jobs exist (preserve history constraint)
+  const linkedJobs = await db.select({ id: jobs.id }).from(jobs).where(eq(jobs.customerId, id)).limit(1);
+  if (linkedJobs.length > 0) {
+    throw new Error("Cannot delete a customer with existing jobs. Delete all jobs first.");
+  }
+  await db.delete(customers).where(eq(customers.id, id));
+  revalidatePath("/customers");
 }
 
 export async function getCustomers(search?: string) {

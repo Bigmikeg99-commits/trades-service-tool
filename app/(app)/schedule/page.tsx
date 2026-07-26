@@ -73,7 +73,7 @@ export default async function SchedulePage() {
   const crewsForSuggestions = crews.slice(0, 3);
   const precomputedSuggestions = await Promise.all(
     crewsForSuggestions.map(async (crew) => {
-      const slots = await findAvailableSlots(crew.id, 120, new Date(), 30);
+      const slots = await findAvailableSlots(crew.id, 120, startOfWeek, 30);
       return { crew, slots };
     })
   );
