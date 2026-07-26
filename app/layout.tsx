@@ -18,10 +18,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SoloPro",
-  description: "Fast quotes, reliable scheduling, and clean proposals for solo contractors.",
+  title: "SoloPro — Field Service Software for Contractors",
+  description: "Fast quotes, professional proposals, and smart scheduling for HVAC, plumbing, electrical, and general contractors. Built for the truck, not the conference room.",
+  metadataBase: new URL("https://solopro.dev"),
   icons: {
     icon: "/favicon.ico",
+  },
+  openGraph: {
+    title: "SoloPro — Field Service Software for Contractors",
+    description: "Fast quotes, professional proposals, and smart scheduling for HVAC, plumbing, electrical, and general contractors.",
+    url: "https://solopro.dev",
+    siteName: "SoloPro",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SoloPro — Field Service Software for Contractors",
+    description: "Fast quotes, professional proposals, and smart scheduling for HVAC, plumbing, electrical, and general contractors.",
   },
 };
 

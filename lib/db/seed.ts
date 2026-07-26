@@ -84,7 +84,7 @@ async function seed() {
       city: "Springfield",
       state: "MN",
       zip: "55110",
-      notes: "2-story colonial. Dog is friendly but loud. Gate code: 4821",
+      notes: "2-story colonial. Dog is friendly but loud. Park in driveway.",
     },
     {
       name: "Riverside Apartments - Unit 3B",
@@ -207,10 +207,12 @@ async function seed() {
   console.log("✓ Job templates created");
 
   // ============================================
-  // SAMPLE JOBS (mix of statuses for realistic demo)
+  // SAMPLE JOBS (one of every status for a realistic demo)
   // ============================================
   const johnson = insertedCustomers[0];
   const riverside = insertedCustomers[1];
+  const millers = insertedCustomers[2];
+  const northview = insertedCustomers[3];
 
   // Job 1: In progress
   const [job1] = await db.insert(jobs).values({
@@ -257,15 +259,74 @@ async function seed() {
     { jobId: job2.id, sortOrder: 3, description: "Labor - HVAC service", category: "hvac", quantity: 1.5, unitPrice: 135, lineTotal: 202.5, source: "manual" },
   ]);
 
+  // Job 3: Lead (new inquiry, no quote yet)
+  await db.insert(jobs).values({
+    customerId: millers.id,
+    title: "Water heater replacement",
+    rawDescription: "water heater not heating, unit is 14 years old",
+    serviceType: "plumbing",
+    status: "lead",
+    travelTimeMin: 20,
+    notes: "Customer called this morning. 50-gal electric unit in utility closet. Asking for a quote.",
+  });
+
+  // Job 4: Scheduled (quote accepted, on the calendar)
+  const [job4] = await db.insert(jobs).values({
+    customerId: northview.id,
+    title: "Electrical panel inspection and surge protection",
+    rawDescription: "commercial panel inspection, add whole-house surge protector",
+    serviceType: "electrical",
+    status: "scheduled",
+    scheduledStart: new Date("2026-07-28T09:00:00"),
+    scheduledEnd: new Date("2026-07-28T11:30:00"),
+    travelTimeMin: 30,
+    estimatedLaborHours: 2.0,
+    assignedPrimaryCrewId: dave.id,
+    quoteSubtotal: 479,
+    quoteTax: 40.72,
+    quoteTotal: 519.72,
+    notes: "Panel is in the basement mechanical room. Building manager will meet at 9 AM.",
+  }).returning();
+
+  await db.insert(jobLineItems).values([
+    { jobId: job4.id, sortOrder: 0, description: "Service call / diagnostic fee", category: "general", quantity: 1, unitPrice: 95, lineTotal: 95, source: "price_book" },
+    { jobId: job4.id, sortOrder: 1, description: "Whole house surge protector", category: "electrical", quantity: 1, unitPrice: 245, lineTotal: 245, source: "price_book" },
+    { jobId: job4.id, sortOrder: 2, description: "Labor - electrical service", category: "electrical", quantity: 1, unitPrice: 145, lineTotal: 145, source: "manual" },
+  ]);
+
+  // Job 5: Completed
+  const [job5] = await db.insert(jobs).values({
+    customerId: johnson.id,
+    title: "AC tune-up and capacitor replacement",
+    rawDescription: "ac not cooling well, making noise on startup",
+    serviceType: "hvac",
+    status: "completed",
+    scheduledStart: new Date("2026-07-10T10:00:00"),
+    scheduledEnd: new Date("2026-07-10T12:00:00"),
+    travelTimeMin: 25,
+    estimatedLaborHours: 1.5,
+    assignedPrimaryCrewId: mike.id,
+    quoteSubtotal: 282,
+    quoteTax: 23.97,
+    quoteTotal: 305.97,
+    notes: "Replaced run capacitor and cleaned coils. Unit cooling normally at completion.",
+  }).returning();
+
+  await db.insert(jobLineItems).values([
+    { jobId: job5.id, sortOrder: 0, description: "AC diagnostic", category: "hvac", quantity: 1, unitPrice: 95, lineTotal: 95, source: "template" },
+    { jobId: job5.id, sortOrder: 1, description: "Capacitor - 45/5 MFD", category: "hvac", quantity: 1, unitPrice: 68, lineTotal: 68, source: "price_book" },
+    { jobId: job5.id, sortOrder: 2, description: "Labor - HVAC service", category: "hvac", quantity: 0.875, unitPrice: 135, lineTotal: 118.13, source: "manual" },
+  ]);
+
   console.log("✓ Sample jobs + line items created");
 
   console.log("\n✅ Database seeded successfully!");
-  console.log("   - 1 company profile (SoloPro)");
-  console.log("   - 3 crew members with realistic schedules");
-  console.log("   - 4 customers (mostly local to the area)");
+  console.log("   - 1 company profile");
+  console.log("   - 3 crew members");
+  console.log("   - 4 customers");
   console.log("   - 20+ price book items across all trades");
   console.log("   - 3 job templates for the estimator");
-  console.log("   - 2 sample jobs in different stages");
+  console.log("   - 5 sample jobs covering every status (lead, quoted, scheduled, in progress, completed)");
 }
 
 seed()

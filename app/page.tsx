@@ -378,6 +378,9 @@ export default function LandingPage() {
           <div className="flex items-center gap-6">
             <a href="/login" className="hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">Log in</a>
             <a href="/signup" className="hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">Sign up</a>
+            <a href="/privacy" className="hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">Privacy</a>
+            <a href="/terms" className="hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">Terms</a>
+            <a href="mailto:support@solopro.dev" className="hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">Support</a>
           </div>
         </div>
       </div>
