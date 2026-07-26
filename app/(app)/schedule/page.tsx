@@ -105,12 +105,14 @@ export default async function SchedulePage({
       const cellEnd = new Date(day);
       cellEnd.setHours(hour + 1, 0, 0, 0);
       const key = `${dayIndex}-${hourOffset}`;
+      const cellStartMs = cellStart.getTime();
+      const cellEndMs = cellEnd.getTime();
       cellJobMap[key] = allJobs
         .filter((job) => {
           if (!job.scheduledStart || !job.scheduledEnd) return false;
-          const jobStart = new Date(job.scheduledStart as string);
-          const jobEnd = new Date(job.scheduledEnd as string);
-          return jobStart < cellEnd && jobEnd > cellStart;
+          const jobStartMs = new Date(job.scheduledStart as unknown as string).getTime();
+          const jobEndMs = new Date(job.scheduledEnd as unknown as string).getTime();
+          return jobStartMs < cellEndMs && jobEndMs > cellStartMs;
         })
         .map((job) => job.id as string);
     }
