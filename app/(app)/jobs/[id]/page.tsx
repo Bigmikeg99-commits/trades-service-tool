@@ -1,6 +1,7 @@
 export const runtime = "nodejs";
 
 import { getJob, updateJobStatus } from "@/app/actions/jobs";
+import { formatStatus, formatServiceType } from "@/lib/format";
 import { generateAndSaveQuote } from "@/app/actions/quotes";
 import { getPriceBookItems } from "@/app/actions/pricebook";
 import { QuoteEditor } from "@/components/job/QuoteEditor";
@@ -30,7 +31,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           <Link href="/jobs" className="text-sm text-zinc-500 hover:text-zinc-700">← Back to Jobs</Link>
           <h1 className="text-4xl font-semibold tracking-tighter mt-1">{job.title}</h1>
           <div className="flex items-center gap-3 mt-2">
-            <span className="rounded-full bg-zinc-100 px-3 py-0.5 text-xs capitalize dark:bg-zinc-800">{job.serviceType}</span>
+            <span className="rounded-full bg-zinc-100 px-3 py-0.5 text-xs dark:bg-zinc-800">{formatServiceType(job.serviceType)}</span>
             <span className="text-sm text-zinc-500">Created {new Date(job.createdAt!).toLocaleDateString()}</span>
           </div>
         </div>
@@ -109,7 +110,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             }} className="flex gap-2">
               <select name="status" defaultValue={job.status} className="flex-1 rounded-lg border px-3 py-2 text-sm dark:bg-zinc-950">
                 {statusOptions.map((s) => (
-                  <option key={s} value={s}>{s.replace("_", " ")}</option>
+                  <option key={s} value={s}>{formatStatus(s)}</option>
                 ))}
               </select>
               <button type="submit" className="rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-black dark:bg-white dark:text-zinc-900">
@@ -121,7 +122,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           <div className="pro-card p-6 text-sm">
             <h2 className="font-semibold mb-3">Details</h2>
             <div className="space-y-2 text-zinc-600 dark:text-zinc-400">
-              <div><span className="font-medium text-zinc-500">Type:</span> {job.serviceType}</div>
+              <div><span className="font-medium text-zinc-500">Type:</span> {formatServiceType(job.serviceType)}</div>
               <div><span className="font-medium text-zinc-500">Travel Time:</span> {job.travelTimeMin} min</div>
               {job.estimatedLaborHours && (
                 <div><span className="font-medium text-zinc-500">Est. Labor:</span> {job.estimatedLaborHours} hrs</div>
@@ -157,7 +158,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             </div>
             <div>
               <div className="font-semibold mb-1">Project</div>
-              <div>{job.serviceType.toUpperCase()}</div>
+              <div>{formatServiceType(job.serviceType)}</div>
               <div>Est. Labor: {job.estimatedLaborHours || "?"} hrs</div>
             </div>
           </div>

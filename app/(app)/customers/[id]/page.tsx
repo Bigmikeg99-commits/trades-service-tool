@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 
 import { getCustomer, updateCustomer } from "@/app/actions/customers";
 import { getJobsForCustomer } from "@/app/actions/jobs";
+import { formatStatus, formatServiceType } from "@/lib/format";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -60,10 +61,10 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="font-medium">{job.title}</div>
-                      <div className="text-xs text-zinc-500 mt-0.5">{job.serviceType.toUpperCase()} • {new Date(job.createdAt!).toLocaleDateString()}</div>
+                      <div className="text-xs text-zinc-500 mt-0.5">{formatServiceType(job.serviceType)} • {new Date(job.createdAt!).toLocaleDateString()}</div>
                     </div>
-                    <div className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 capitalize">
-                      {job.status.replace("_", " ")}
+                    <div className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800">
+                      {formatStatus(job.status)}
                     </div>
                   </div>
                 </Link>

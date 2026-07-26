@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 
 import { getJobs } from "@/app/actions/jobs";
 import { EmptyState } from "@/components/EmptyState";
+import { formatStatus, formatServiceType } from "@/lib/format";
 import { ClipboardList } from "lucide-react";
 import Link from "next/link";
 
@@ -49,7 +50,7 @@ export default async function JobsPage({
                   : "bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800"
               }`}
             >
-              {s === "all" ? "All" : s.replace("_", " ")}
+              {s === "all" ? "All" : formatStatus(s)}
             </Link>
           );
         })}
@@ -102,10 +103,10 @@ export default async function JobsPage({
                   <Link href={`/jobs/${job.id}`} className="hover:underline">{job.title}</Link>
                 </td>
                 <td className="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">{job.customerName}</td>
-                <td className="px-6 py-4 text-sm capitalize">{job.serviceType}</td>
+                <td className="px-6 py-4 text-sm">{formatServiceType(job.serviceType)}</td>
                 <td className="px-6 py-4">
-                  <span className="rounded-full bg-zinc-100 px-3 py-0.5 text-xs capitalize dark:bg-zinc-800">
-                    {job.status.replace("_", " ")}
+                  <span className="rounded-full bg-zinc-100 px-3 py-0.5 text-xs dark:bg-zinc-800">
+                    {formatStatus(job.status)}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-zinc-500">

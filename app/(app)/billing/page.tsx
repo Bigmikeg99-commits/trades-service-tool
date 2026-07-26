@@ -274,8 +274,6 @@ export default async function BillingPage() {
         New Pro subscriptions include a 14-day free trial — your card is required to start, but you won&apos;t be charged until the trial ends, and you can cancel anytime before then at no cost.
         <br />
         Payments are processed securely by Stripe.
-        <br />
-        Test mode is enabled — no real charges will be made. Add your keys in .env for live.
       </div>
     </div>
   );

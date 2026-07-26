@@ -1,4 +1,5 @@
 "use client";
+import { formatStatus } from "@/lib/format";
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -140,7 +141,7 @@ export function ScheduleClient({
         <div className="flex flex-wrap gap-4 items-end">
           {/* Crew filters */}
           <div>
-            <div className="text-xs font-medium text-zinc-500 mb-1.5">Crew Filters (click to toggle)</div>
+            <div className="text-xs font-medium text-zinc-500 mb-1.5">Show crew</div>
             <div className="flex flex-wrap gap-2">
               {crews.map((crew) => {
                 const active = selectedCrewIds.includes(crew.id);
@@ -179,7 +180,7 @@ export function ScheduleClient({
 
           {/* Status filters */}
           <div>
-            <div className="text-xs font-medium text-zinc-500 mb-1.5">Job Status Filters</div>
+            <div className="text-xs font-medium text-zinc-500 mb-1.5">Filter by status</div>
             <div className="flex flex-wrap gap-2">
               {["scheduled", "in_progress", "quoted", "lead"].map((status) => {
                 const active = selectedStatuses.includes(status);
@@ -188,20 +189,19 @@ export function ScheduleClient({
                     key={status}
                     type="button"
                     onClick={() => toggleStatus(status)}
-                    className={`text-xs px-3 py-1 rounded-full capitalize transition-colors border ${
+                    className={`text-xs px-3 py-1 rounded-full transition-colors border ${
                       active
                         ? "bg-emerald-600 text-white border-transparent"
                         : "bg-white dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
                     }`}
                   >
-                    {status.replace("_", " ")}
+                    {formatStatus(status)}
                   </button>
                 );
               })}
             </div>
           </div>
         </div>
-        <p className="mt-2 text-[10px] text-zinc-500">Filters are client-side for instant response. Changes don't reload the page.</p>
       </div>
 
       {/* The Calendar Grid - fully rendered in this client component so crew/status filters instantly affect which job blocks appear (live responding UI, no event handlers passed from server RSC) */}
@@ -275,16 +275,14 @@ export function ScheduleClient({
         </div>
       </div>
 
-      {/* Live filtered jobs summary (shows that filters work and existing jobs appear) */}
       <div className="text-xs text-zinc-500">
-        Showing {filteredJobs.length} of {allJobs.length} scheduled/assigned jobs in current filters.
+        {filteredJobs.length} of {allJobs.length} job{allJobs.length === 1 ? "" : "s"} shown
       </div>
 
-      {/* Explicit filtered Job List - makes the crew/status toggles obviously responsive for the "job list" without reload */}
       <div className="pro-card p-4">
-        <h4 className="font-semibold mb-2 text-sm">Filtered Scheduled/Assigned Jobs (calendar grid + this list update instantly)</h4>
+        <h4 className="font-semibold mb-2 text-sm">Scheduled Jobs</h4>
         {filteredJobs.length === 0 ? (
-          <p className="text-xs text-zinc-500">No jobs match the current crew/status filters.</p>
+          <p className="text-xs text-zinc-500">No jobs match the selected filters.</p>
         ) : (
           <div className="space-y-2 text-xs">
             {filteredJobs.map((job) => {
@@ -293,7 +291,7 @@ export function ScheduleClient({
                 <div key={job.id} className="flex items-center justify-between border-b pb-1 last:border-b-0 last:pb-0">
                   <div>
                     <span className="font-medium">{job.title}</span>
-                    <span className="ml-2 text-zinc-500">({job.status})</span>
+                    <span className="ml-2 text-zinc-500">({formatStatus(job.status)})</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {crew && (
@@ -315,10 +313,10 @@ export function ScheduleClient({
         <h4 className="font-semibold mb-3">Calendar Assignments</h4>
 
         {filteredAssignableJobs.length === 0 ? (
-          <p className="text-sm text-zinc-500">No matching jobs awaiting assignment under current filters.</p>
+          <p className="text-sm text-zinc-500">No unscheduled jobs match the current filters.</p>
         ) : (
           <>
-            <p className="text-xs text-zinc-500 mb-2">1. Select a job to schedule (respecting status filters):</p>
+            <p className="text-xs text-zinc-500 mb-2">Select a job to schedule:</p>
             <div className="flex flex-wrap gap-2 mb-4">
               {filteredAssignableJobs.map((job) => (
                 <button

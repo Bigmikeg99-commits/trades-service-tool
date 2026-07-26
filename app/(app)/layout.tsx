@@ -96,6 +96,9 @@ export default async function ProtectedLayout({
               <Link href="/billing" className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">
                 Billing
               </Link>
+              <Link href="/settings" className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">
+                Settings
+              </Link>
             </div>
           </div>
 

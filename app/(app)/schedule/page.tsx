@@ -130,7 +130,7 @@ export default async function SchedulePage() {
 
           {/* Legend for the (now interactive/filterable) calendar below */}
           <div className="mt-1 mb-2 text-xs text-zinc-500">
-            Colored blocks show scheduled/assigned jobs + travel buffers. Use filters below to narrow. Click blocks or use suggestions to assign.
+            Each colored block is a scheduled job. Travel time is shown before each appointment. Use the filters above to focus on a specific crew member or job status.
           </div>
 
           {/* Interactive Client Component: FULL live calendar grid (filtered), view toggles (crew/status filters), pending job selector, and working calendar assignment buttons.
