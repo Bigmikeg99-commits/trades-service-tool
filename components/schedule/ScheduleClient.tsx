@@ -51,6 +51,12 @@ interface ScheduleClientProps {
 
 const timeSlots = Array.from({ length: 12 }, (_, i) => 7 + i); // 7am to 6pm
 
+function formatHour(hour: number): string {
+  if (hour === 12) return "12 PM";
+  if (hour < 12) return `${hour} AM`;
+  return `${hour - 12} PM`;
+}
+
 export function ScheduleClient({
   allJobs,
   crews,
@@ -240,7 +246,7 @@ export function ScheduleClient({
             {timeSlots.map((hour) => (
               <div key={hour} className="grid grid-cols-8 border-b dark:border-zinc-800 h-12">
                 <div className="p-2 text-xs text-zinc-500 border-r dark:border-zinc-800">
-                  {hour}:00
+                  {formatHour(hour)}
                 </div>
                 {dayInfos.map((dInfo, dayIndex) => {
                   // Use pre-computed server-side cell map — no setHours() here.
