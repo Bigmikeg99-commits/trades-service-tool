@@ -50,6 +50,8 @@ interface ScheduleClientProps {
 }
 
 const timeSlots = Array.from({ length: 24 }, (_, i) => i); // All 24 hours — no cutoff
+const ROW_HEIGHT_PX = 40;  // must stay in sync with h-10 (2.5rem)
+const MIN_JOB_HEIGHT_PX = 18; // minimum visible height for very short jobs
 
 function formatHour(hour: number): string {
   if (hour === 0) return "12 AM";
@@ -253,38 +255,71 @@ export function ScheduleClient({
           {/* Scrollable 24-hour grid — no cutoff */}
           <div ref={gridScrollRef} className="overflow-y-auto max-h-[520px]">
             {timeSlots.map((hour) => (
-              <div key={hour} className={`grid grid-cols-8 border-b dark:border-zinc-800 h-10 ${hour < 6 || hour >= 22 ? "bg-zinc-50/60 dark:bg-zinc-900/40" : ""}`}>
+              <div key={hour} className="grid grid-cols-8 border-b dark:border-zinc-800 h-10">
                 <div className="p-2 text-xs text-zinc-500 border-r dark:border-zinc-800 flex items-center">
                   {formatHour(hour)}
                 </div>
                 {dayInfos.map((dInfo, dayIndex) => {
-                  // Key uses absolute hour (0–23) matching server-side cellJobMap computation
+                  // Jobs that START in this cell (one entry per job, never duplicated)
                   const cellJobIds = cellJobMap[`${dayIndex}-${hour}`] ?? [];
                   const jobsInCell = filteredJobs.filter((job) => cellJobIds.includes(job.id));
 
-                  const crewForJob = (job: Job) => crews.find((c) => c.id === job.assignedPrimaryCrewId);
+                  // Cell's start in epoch ms — pure arithmetic, timezone-agnostic
+                  const cellBaseMs = new Date(dInfo.iso).getTime() + hour * 3600000;
 
                   return (
                     <div
                       key={dayIndex}
-                      className="border-l dark:border-zinc-800 p-1 text-[10px] relative hover:bg-zinc-50 dark:hover:bg-zinc-900 min-h-[3rem]"
+                      className={`border-l dark:border-zinc-800 relative hover:bg-zinc-50 dark:hover:bg-zinc-900 ${hour < 6 || hour >= 22 ? "bg-zinc-50/60 dark:bg-zinc-900/40" : ""}`}
+                      style={{ height: `${ROW_HEIGHT_PX}px` }}
                     >
                       {jobsInCell.map((job, idx) => {
-                        const crew = crewForJob(job);
+                        const crew = crews.find((c) => c.id === job.assignedPrimaryCrewId);
+
+                        // Compute position from epoch ms — no timezone-sensitive calls
+                        const startMs = new Date(job.scheduledStart as string | number).getTime();
+                        const endMs = job.scheduledEnd
+                          ? new Date(job.scheduledEnd as string | number).getTime()
+                          : startMs + 3600000;
+                        const minutesPastCellStart = Math.max(0, (startMs - cellBaseMs) / 60000);
+                        const topPx = (minutesPastCellStart / 60) * ROW_HEIGHT_PX;
+                        const heightPx = Math.max(
+                          ((endMs - startMs) / 3600000) * ROW_HEIGHT_PX,
+                          MIN_JOB_HEIGHT_PX
+                        );
+
+                        // Side-by-side layout when multiple jobs start in the same cell
+                        const colWidth = 1 / jobsInCell.length;
+                        const leftPct = idx * colWidth * 100;
+                        const rightPct = (1 - (idx + 1) * colWidth) * 100;
+
                         return (
                           <div
-                            key={idx}
-                            className="rounded px-1 py-0.5 text-white truncate mb-0.5 text-[9px] cursor-pointer"
-                            style={{ backgroundColor: crew?.color || "#3b82f6" }}
+                            key={job.id}
+                            className="rounded text-white overflow-hidden cursor-pointer"
+                            style={{
+                              position: "absolute",
+                              top: `${topPx}px`,
+                              height: `${heightPx}px`,
+                              left: `calc(${leftPct}% + 2px)`,
+                              right: `calc(${rightPct}% + 2px)`,
+                              backgroundColor: crew?.color || "#3b82f6",
+                              zIndex: 10 + idx,
+                            }}
                             title={`${job.title} (${job.status})`}
                             onClick={() => {
-                              if (!job.assignedPrimaryCrewId) {
-                                selectJobForAssign(job.id);
-                              }
+                              if (!job.assignedPrimaryCrewId) selectJobForAssign(job.id);
                             }}
                           >
-                            <a href={`/jobs/${job.id}`} className="hover:underline block" onClick={(e) => e.stopPropagation()}>
-                              {job.title}
+                            <a
+                              href={`/jobs/${job.id}`}
+                              className="block px-1 pt-0.5 text-[9px] leading-tight hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <span className="font-medium block truncate">{job.title}</span>
+                              {heightPx >= 36 && crew && (
+                                <span className="opacity-75 block truncate">{crew.name}</span>
+                              )}
                             </a>
                           </div>
                         );

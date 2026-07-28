@@ -10,6 +10,7 @@ import { eq, and, isNotNull, isNull, or } from "drizzle-orm";
 import { Calendar } from "lucide-react";
 import Link from "next/link";
 import { ScheduleClient } from "@/components/schedule/ScheduleClient";
+import { buildCellJobMap } from "@/lib/scheduling/cellMap";
 
 function getWeekDates(date: Date, weekOffset: number = 0) {
   const base = new Date(date);
@@ -94,28 +95,9 @@ export default async function SchedulePage({
   // Done server-side so the client never calls setHours() during render.
   // setHours() is timezone-local — server (UTC) and browser (CDT) produce different
   // epoch values for the same "hour", which makes jobsInCell differ and triggers #418.
-  // All 24 hours — no artificial cutoff. Key format: "dayIndex-hour" (absolute 0–23).
-  const cellJobMap: Record<string, string[]> = {};
-  for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
-    const day = days[dayIndex];
-    for (let hour = 0; hour < 24; hour++) {
-      const cellStart = new Date(day);
-      cellStart.setHours(hour, 0, 0, 0);
-      const cellEnd = new Date(day);
-      cellEnd.setHours(hour + 1, 0, 0, 0);
-      const key = `${dayIndex}-${hour}`;
-      const cellStartMs = cellStart.getTime();
-      const cellEndMs = cellEnd.getTime();
-      cellJobMap[key] = allJobs
-        .filter((job) => {
-          if (!job.scheduledStart || !job.scheduledEnd) return false;
-          const jobStartMs = new Date(job.scheduledStart as unknown as string).getTime();
-          const jobEndMs = new Date(job.scheduledEnd as unknown as string).getTime();
-          return jobStartMs < cellEndMs && jobEndMs > cellStartMs;
-        })
-        .map((job) => job.id as string);
-    }
-  }
+  // Build cell map — each job appears only in the cell where it starts.
+  // See lib/scheduling/cellMap.ts for logic and tests.
+  const cellJobMap = buildCellJobMap(allJobs as any, days);
 
   // Suggestions anchored to the displayed week's start
   const crewsForSuggestions = crews.slice(0, 3);
