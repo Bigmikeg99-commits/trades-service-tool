@@ -1,7 +1,7 @@
 "use client";
 import { formatStatus } from "@/lib/format";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { assignJobToSlot } from "@/app/actions/schedule";
 
@@ -49,9 +49,10 @@ interface ScheduleClientProps {
   cellJobMap: Record<string, string[]>;
 }
 
-const timeSlots = Array.from({ length: 12 }, (_, i) => 7 + i); // 7am to 6pm
+const timeSlots = Array.from({ length: 24 }, (_, i) => i); // All 24 hours — no cutoff
 
 function formatHour(hour: number): string {
+  if (hour === 0) return "12 AM";
   if (hour === 12) return "12 PM";
   if (hour < 12) return `${hour} AM`;
   return `${hour - 12} PM`;
@@ -68,6 +69,14 @@ export function ScheduleClient({
 }: ScheduleClientProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const gridScrollRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to 7 AM on mount so the grid opens at a sensible position
+  useEffect(() => {
+    if (!gridScrollRef.current) return;
+    const rowHeight = 40; // h-10 = 2.5rem = 40px
+    gridScrollRef.current.scrollTop = 7 * rowHeight;
+  }, []);
 
   // Client state for filters (crew + status) - these "respond" instantly without server roundtrip or handler passing from RSC
   const [selectedCrewIds, setSelectedCrewIds] = useState<string[]>(crews.map((c) => c.id));
@@ -230,8 +239,8 @@ export function ScheduleClient({
       {/* The Calendar Grid - fully rendered in this client component so crew/status filters instantly affect which job blocks appear (live responding UI, no event handlers passed from server RSC) */}
       <div className="pro-card overflow-x-auto">
         <div className="min-w-[900px]">
-          {/* Header */}
-          <div className="grid grid-cols-8 border-b dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
+          {/* Sticky header */}
+          <div className="grid grid-cols-8 border-b dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 sticky top-0 z-10">
             <div className="p-3 text-xs font-medium text-zinc-500">Time</div>
             {dayInfos.map((d, index) => (
               <div key={index} className="p-3 text-center border-l dark:border-zinc-800">
@@ -241,17 +250,16 @@ export function ScheduleClient({
             ))}
           </div>
 
-          {/* Time Grid (client-side, filters applied to jobsInCell for instant updates) */}
-          <div className="relative">
+          {/* Scrollable 24-hour grid — no cutoff */}
+          <div ref={gridScrollRef} className="overflow-y-auto max-h-[520px]">
             {timeSlots.map((hour) => (
-              <div key={hour} className="grid grid-cols-8 border-b dark:border-zinc-800 h-12">
-                <div className="p-2 text-xs text-zinc-500 border-r dark:border-zinc-800">
+              <div key={hour} className={`grid grid-cols-8 border-b dark:border-zinc-800 h-10 ${hour < 6 || hour >= 22 ? "bg-zinc-50/60 dark:bg-zinc-900/40" : ""}`}>
+                <div className="p-2 text-xs text-zinc-500 border-r dark:border-zinc-800 flex items-center">
                   {formatHour(hour)}
                 </div>
                 {dayInfos.map((dInfo, dayIndex) => {
-                  // Use pre-computed server-side cell map — no setHours() here.
-                  const hourOffset = hour - 7;
-                  const cellJobIds = cellJobMap[`${dayIndex}-${hourOffset}`] ?? [];
+                  // Key uses absolute hour (0–23) matching server-side cellJobMap computation
+                  const cellJobIds = cellJobMap[`${dayIndex}-${hour}`] ?? [];
                   const jobsInCell = filteredJobs.filter((job) => cellJobIds.includes(job.id));
 
                   const crewForJob = (job: Job) => crews.find((c) => c.id === job.assignedPrimaryCrewId);
@@ -286,7 +294,7 @@ export function ScheduleClient({
                 })}
               </div>
             ))}
-          </div>
+          </div>{/* end scroll container */}
         </div>
       </div>
 

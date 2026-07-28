@@ -94,17 +94,16 @@ export default async function SchedulePage({
   // Done server-side so the client never calls setHours() during render.
   // setHours() is timezone-local — server (UTC) and browser (CDT) produce different
   // epoch values for the same "hour", which makes jobsInCell differ and triggers #418.
-  const timeSlotHours = Array.from({ length: 12 }, (_, i) => 7 + i); // 7am–6pm
+  // All 24 hours — no artificial cutoff. Key format: "dayIndex-hour" (absolute 0–23).
   const cellJobMap: Record<string, string[]> = {};
   for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
     const day = days[dayIndex];
-    for (let hourOffset = 0; hourOffset < 12; hourOffset++) {
-      const hour = 7 + hourOffset;
+    for (let hour = 0; hour < 24; hour++) {
       const cellStart = new Date(day);
       cellStart.setHours(hour, 0, 0, 0);
       const cellEnd = new Date(day);
       cellEnd.setHours(hour + 1, 0, 0, 0);
-      const key = `${dayIndex}-${hourOffset}`;
+      const key = `${dayIndex}-${hour}`;
       const cellStartMs = cellStart.getTime();
       const cellEndMs = cellEnd.getTime();
       cellJobMap[key] = allJobs
